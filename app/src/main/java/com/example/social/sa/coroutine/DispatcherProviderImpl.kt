@@ -2,8 +2,9 @@ package com.example.social.sa.coroutine
 
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
+import javax.inject.Inject
 
-class DispatcherProviderImpl:DispatcherProvider {
+class DispatcherProviderImpl @Inject constructor():DispatcherProvider {
     override val main: CoroutineDispatcher
         get() = Dispatchers.Main
     override val io: CoroutineDispatcher

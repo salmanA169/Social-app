@@ -1,3 +1,11 @@
 <resources>
     <string name="app_name">Social</string>
+    <string name="email_hint">Enter Your Email</string>
+    <string name="password_hint">Enter Your Password</string>
+    <string name="forget_password">Forget password?</string>
+    <string name="sign_in">Sign in</string>
+    <string name="other_sign_in_options">Other Sign in options</string>
+    <string name="sign_up">Sign up</string>
+    <string name="home">Home</string>
+    <string name="for_you">For you</string>
 </resources>

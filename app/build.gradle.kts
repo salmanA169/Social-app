@@ -8,12 +8,12 @@ plugins {
 
 android {
     namespace = "com.example.social.sa"
-    compileSdk = 33
+    compileSdk = 34
 
     defaultConfig {
         applicationId = "com.example.social.sa"
         minSdk = 28
-        targetSdk = 33
+        targetSdk = 34
         versionCode = 1
         versionName = "1.0"
 
@@ -33,12 +33,13 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
     kotlinOptions {
-        jvmTarget = "1.8"
+        jvmTarget = "17"
     }
+
     buildFeatures {
         compose = true
     }
@@ -60,7 +61,7 @@ dependencies {
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.6.2")
     implementation("androidx.activity:activity-compose:1.7.2")
-    implementation(platform("androidx.compose:compose-bom:2023.03.00"))
+    implementation(platform("androidx.compose:compose-bom:2023.09.02"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -95,5 +96,26 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-auth-ktx")
 
+
+    // navigation
+
+    implementation("androidx.hilt:hilt-navigation-compose:1.0.0")
+
+
+    // google service
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+
+    // firestore
+    implementation("com.google.firebase:firebase-firestore-ktx")
+
+    // firebase storage
+    implementation("com.google.firebase:firebase-storage-ktx")
+
+
+    // truth
+    testImplementation("com.google.truth:truth:1.1.4")
+
+    // coil
+    implementation("io.coil-kt:coil-compose:2.4.0")
 
 }
