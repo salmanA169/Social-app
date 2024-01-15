@@ -1,5 +1,6 @@
 package com.example.social.sa.core
 
+import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
 import android.graphics.Bitmap
@@ -8,6 +9,7 @@ import android.graphics.ImageDecoder
 import android.graphics.ImageFormat
 import android.net.Uri
 import android.os.Build
+import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -44,11 +46,16 @@ class FileManager @Inject constructor(@ApplicationContext private val context: C
             val progection = arrayOf(
                 MediaStore.Images.Media._ID,
             )
+            val bundle = Bundle().apply {
+                putInt(ContentResolver.QUERY_ARG_LIMIT,10)
+                putStringArray(ContentResolver.QUERY_ARG_SORT_COLUMNS, arrayOf(MediaStore.Images.Media.DATE_ADDED))
+                putInt(ContentResolver.QUERY_ARG_SORT_DIRECTION,ContentResolver.QUERY_SORT_DIRECTION_DESCENDING)
+            }
             val listImage = mutableListOf<String>()
             contentResolver.query(
                 collection,
                 progection,
-                null,null,"${MediaStore.Images.Media.DATE_ADDED} DESC"
+                bundle,null
             ).use {
                 val columnId = it!!.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
                 while(it.moveToNext()){

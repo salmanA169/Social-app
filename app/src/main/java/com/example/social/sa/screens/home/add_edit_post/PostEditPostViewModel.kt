@@ -21,12 +21,31 @@ class PostEditPostViewModel @Inject constructor(
     val state = _state.asStateFlow()
     init {
         viewModelScope.launch(Dispatchers.IO) {
-            val imagtes =  fileManager.loadFilesExternalStorage().take(5)
+            val images =  fileManager.loadFilesExternalStorage()
             _state.update {
                 it.copy(
-                    imagtes
+                    images
                 )
             }
         }
     }
+
+    fun onEvent(event: AddEditPostEvent){
+        when(event){
+            is AddEditPostEvent.PickImage -> {
+                val state = _state.value
+                if (!state.pickedImage.contains(event.imageUri)){
+                    _state.update {
+                        it.copy(
+                            pickedImage = it.pickedImage + event.imageUri
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+sealed class AddEditPostEvent{
+    class PickImage(val imageUri:String):AddEditPostEvent()
 }

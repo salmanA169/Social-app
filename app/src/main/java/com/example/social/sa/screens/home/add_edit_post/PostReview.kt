@@ -2,22 +2,28 @@ package com.example.social.sa.screens.home.add_edit_post
 
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.compose.animation.slideInVertically
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
@@ -57,27 +63,27 @@ fun NavGraphBuilder.addEditPostDest(navController: NavController) {
     }) {
         val viewModel = hiltViewModel<PostEditPostViewModel>()
         val state by viewModel.state.collectAsState()
-        AddEditPostScreen(state)
+        AddEditPostScreen(state, viewModel::onEvent)
     }
 }
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AddEditPostScreen(
-    state: AddEditPostState
+    state: AddEditPostState,
+    onEvent: (AddEditPostEvent) -> Unit = {}
 ) {
     var text = remember {
         mutableStateOf("")
     }
-    Box(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = Modifier.fillMaxSize()) {
         BasicTextField(
             value = text.value,
             onValueChange = {
                 text.value = it
             },
             modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(),
+                .fillMaxWidth(),
             cursorBrush = Brush.linearGradient(
                 listOf(
                     MaterialTheme.colorScheme.primary,
@@ -86,45 +92,44 @@ fun AddEditPostScreen(
             ),
             textStyle = LocalTextStyle.current.copy(color = MaterialTheme.colorScheme.onBackground)
         ) {
-            Column(modifier = Modifier.fillMaxWidth().fillMaxHeight()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+            ) {
                 it()
                 Spacer(modifier = Modifier.height(24.dp))
-                FlowRow(
-                    maxItemsInEachRow = 3,
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.Bottom,
-                    horizontalArrangement = Arrangement.Center
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(4.dp)
+                        .horizontalScroll(
+                            rememberScrollState()
+                        ),
                 ) {
-                    CameraIcon()
-                    CameraIcon()
-                    CameraIcon()
-                    CameraIcon()
-                    CameraIcon()
-                    CameraIcon()
-                    CameraIcon()
-                    CameraIcon()
-                    CameraIcon()
-                    CameraIcon()
-                    CameraIcon()
+                    state.pickedImage.forEach {
+                        AsyncImage(
+                            model = it,
+                            contentDescription = "",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier
+                                .height(80.dp)
+                                .clip(RoundedCornerShape(25f))
+                        )
+                    }
                 }
             }
         }
 
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .align(Alignment.BottomCenter)
-        ) {
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+        Spacer(modifier = Modifier.weight(1f))
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp), modifier = Modifier) {
                 item {
                     CameraIcon()
                 }
                 items(state.images) {
-                    PickImages(imageUri = it)
+                    PickImages(imageUri = it,onEvent = onEvent)
                 }
             }
         }
-    }
 }
 
 @Composable
@@ -137,15 +142,19 @@ fun CameraIcon() {
 
 @Composable
 fun PickImages(
+    modifier: Modifier = Modifier,
     imageUri: String,
-    modifier: Modifier = Modifier
+    onEvent: (AddEditPostEvent) -> Unit
 ) {
     AsyncImage(
         model = imageUri,
         contentDescription = "",
         modifier = Modifier
             .size(80.dp)
-            .clip(RoundedCornerShape(25f)),
+            .clip(RoundedCornerShape(25f))
+            .clickable {
+                onEvent(AddEditPostEvent.PickImage(imageUri))
+            },
         contentScale = ContentScale.Crop
     )
 
