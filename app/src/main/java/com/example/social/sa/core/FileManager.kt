@@ -24,8 +24,9 @@ import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
 
-class FileManager @Inject constructor(@ApplicationContext private val context: Context) {
-
+class FileManager @Inject constructor(
+    @ApplicationContext private val context: Context
+) {
     private val contentResolver = context.contentResolver
     private val quality: Int = 80
 
@@ -34,7 +35,6 @@ class FileManager @Inject constructor(@ApplicationContext private val context: C
     companion object {
         private const val ONE_MB: Long = 1024 * 1024
         private const val FIFTY_MB: Long = ONE_MB * 50
-
     }
 
     suspend fun loadFilesExternalStorage(): List<String> {
@@ -47,18 +47,24 @@ class FileManager @Inject constructor(@ApplicationContext private val context: C
                 MediaStore.Images.Media._ID,
             )
             val bundle = Bundle().apply {
-                putInt(ContentResolver.QUERY_ARG_LIMIT,10)
-                putStringArray(ContentResolver.QUERY_ARG_SORT_COLUMNS, arrayOf(MediaStore.Images.Media.DATE_ADDED))
-                putInt(ContentResolver.QUERY_ARG_SORT_DIRECTION,ContentResolver.QUERY_SORT_DIRECTION_DESCENDING)
+                putInt(ContentResolver.QUERY_ARG_LIMIT, 10)
+                putStringArray(
+                    ContentResolver.QUERY_ARG_SORT_COLUMNS,
+                    arrayOf(MediaStore.Images.Media.DATE_ADDED)
+                )
+                putInt(
+                    ContentResolver.QUERY_ARG_SORT_DIRECTION,
+                    ContentResolver.QUERY_SORT_DIRECTION_DESCENDING
+                )
             }
             val listImage = mutableListOf<String>()
             contentResolver.query(
                 collection,
                 progection,
-                bundle,null
+                bundle, null
             ).use {
                 val columnId = it!!.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
-                while(it.moveToNext()){
+                while (it.moveToNext()) {
                     val id = it.getLong(columnId)
                     val contentUri = ContentUris.withAppendedId(
                         MediaStore.Images.Media.EXTERNAL_CONTENT_URI,

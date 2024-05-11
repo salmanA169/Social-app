@@ -27,7 +27,6 @@ class MainViewModel @Inject constructor(
         userSession.registerAuthListener()
         viewModelScope.launch(dispatcherProvider.io) {
             userSession.isAuth.collectLatest { isAuth ->
-                delay(1000)
                 _state.update {
                     it.copy(
                         // TODO: for test now auto == null 
