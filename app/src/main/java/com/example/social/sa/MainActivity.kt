@@ -1,15 +1,11 @@
 package com.example.social.sa
 
 import android.Manifest
-import android.content.ContentUris
-import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.registerForActivityResult
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -26,30 +22,30 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.social.sa.component.AppBar
+import com.example.social.sa.component.HomeAppBar
 import com.example.social.sa.screens.home.homeDest
 import com.example.social.sa.screens.home.add_edit_post.addEditPostDest
 import com.example.social.sa.screens.register.registerDest
 import com.example.social.sa.ui.theme.SocialTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         val requestPermission =
             registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
 
@@ -79,7 +75,7 @@ class MainActivity : ComponentActivity() {
 fun MainScreen() {
     val controller = rememberNavController()
     val mainViewModel = hiltViewModel<MainViewModel>()
-    val state by mainViewModel.state.collectAsState()
+    val state by mainViewModel.state.collectAsStateWithLifecycle()
     val navBackStackEntry by controller.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     LaunchedEffect(key1 = state.shouldNavigateLoginScreen) {
@@ -132,7 +128,7 @@ fun MainScreen() {
         }
     }, topBar = {
         AnimatedVisibility(visible = shouldShow) {
-            AppBar(image = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png")
+            HomeAppBar(image = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png")
         }
     }, floatingActionButton = {
         AnimatedVisibility(visible = shouldShow) {

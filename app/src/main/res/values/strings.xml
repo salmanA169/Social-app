@@ -8,4 +8,7 @@
     <string name="sign_up">Sign up</string>
     <string name="home">Home</string>
     <string name="for_you">For you</string>
+    <string name="create_post">Create Post</string>
+    <string name="send">Send</string>
+    <string name="what_happening">What\'s happening?</string>
 </resources>

@@ -1,7 +1,6 @@
 package com.example.social.sa.screens.home
 
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -20,7 +19,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
@@ -32,6 +30,7 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -52,7 +51,6 @@ import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
@@ -66,10 +64,8 @@ import coil.compose.AsyncImage
 import com.example.social.sa.R
 import com.example.social.sa.Screens
 import com.example.social.sa.component.ExpandText
-import com.example.social.sa.model.CommentsPost
 import com.example.social.sa.model.Posts
 import com.example.social.sa.ui.theme.SocialTheme
-import com.example.social.sa.ui.theme.SurfaceColor
 import com.example.social.sa.utils.PreviewBothLightAndDark
 import kotlinx.coroutines.launch
 
@@ -82,12 +78,13 @@ fun NavGraphBuilder.homeDest(navController: NavController, paddingValues: Paddin
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     state: HomeScreenState,
     paddingValues: PaddingValues
 ) {
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -174,7 +171,7 @@ fun Post(
         modifier = modifier
             .fillMaxWidth(),
         shape = RoundedCornerShape(0f),
-        colors = CardDefaults.cardColors(containerColor = SurfaceColor.surfaces.surfaceContainer)
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceContainer)
     ) {
         Row(
             modifier = Modifier
@@ -186,7 +183,9 @@ fun Post(
             AsyncImage(
                 model = profileImage,
                 contentDescription = "",
-                modifier = Modifier.size(40.dp).clip(CircleShape),
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape),
                 contentScale = ContentScale.Crop
             )
             Column(modifier = Modifier.padding(4.dp)) {
@@ -276,8 +275,7 @@ fun IconWithText(
         modifier = modifier
             .fillMaxWidth()
             .height(40.dp)
-            .clickable { }
-            ,
+            .clickable { },
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.Center
     ) {
