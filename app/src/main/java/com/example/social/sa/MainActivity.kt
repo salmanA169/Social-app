@@ -35,6 +35,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.social.sa.component.HomeAppBar
+import com.example.social.sa.screens.camera.cameraDest
 import com.example.social.sa.screens.home.homeDest
 import com.example.social.sa.screens.home.add_edit_post.addEditPostDest
 import com.example.social.sa.screens.register.registerDest
@@ -54,9 +55,11 @@ class MainActivity : ComponentActivity() {
             arrayOf(
                 Manifest.permission.READ_MEDIA_IMAGES,
                 Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.ACCESS_MEDIA_LOCATION
+                Manifest.permission.ACCESS_MEDIA_LOCATION,
+                Manifest.permission.CAMERA
             )
         )
+
         setContent {
             SocialTheme {
                 // A surface container using the 'background' color from the theme
@@ -163,6 +166,7 @@ fun MainScreen() {
                 }
             }
             registerDest(controller)
+            cameraDest(controller)
         }
     }
 }

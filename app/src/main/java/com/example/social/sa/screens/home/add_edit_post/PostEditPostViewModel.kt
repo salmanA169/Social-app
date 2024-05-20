@@ -19,6 +19,8 @@ class PostEditPostViewModel @Inject constructor(
 
     private val _state = MutableStateFlow(AddEditPostState())
     val state = _state.asStateFlow()
+    private val _effect = MutableStateFlow<AddEditPostEffect?>(null)
+    val effect = _effect.asStateFlow()
     init {
         viewModelScope.launch(Dispatchers.IO) {
             val images =  fileManager.loadFilesExternalStorage()
@@ -42,10 +44,36 @@ class PostEditPostViewModel @Inject constructor(
                     }
                 }
             }
+            is AddEditPostEvent.DeleteImage -> {
+                val state = _state.value
+                if (state.pickedImage.contains(event.imageUri)) {
+                    _state.update {
+                        it.copy(
+                            pickedImage = it.pickedImage - event.imageUri
+                        )
+                    }
+                }
+
+            }
+
+            is AddEditPostEvent.Navigate -> {
+                _effect.update {
+                    AddEditPostEffect.Navigate(event.route)
+                }
+            }
+        }
+    }
+    fun resetEffect(){
+        _effect.update {
+            null
         }
     }
 }
-
+sealed class AddEditPostEffect{
+    class Navigate(val route:String):AddEditPostEffect()
+}
 sealed class AddEditPostEvent{
     class PickImage(val imageUri:String):AddEditPostEvent()
+    class DeleteImage(val imageUri:String):AddEditPostEvent()
+    class Navigate(val route:String):AddEditPostEvent()
 }

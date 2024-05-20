@@ -43,6 +43,10 @@ sealed class Screens (val route:String) {
         override val args: List<NamedNavArgument>
             get() = emptyList()
     }
+    object CameraPreviewScreen:Screens("camera-preview-route"){
+        override val args: List<NamedNavArgument>
+            get() = emptyList()
+    }
 }
 
 val bottomScreens = listOf<Screens.BottomScreens>(
