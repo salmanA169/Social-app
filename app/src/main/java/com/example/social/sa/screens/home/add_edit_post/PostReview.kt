@@ -1,5 +1,7 @@
 package com.example.social.sa.screens.home.add_edit_post
 
+import android.graphics.Bitmap
+import android.net.Uri
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.clickable
@@ -59,6 +61,7 @@ import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
 import coil.compose.AsyncImage
+import com.example.social.sa.Constants
 import com.example.social.sa.R
 import com.example.social.sa.Screens
 import com.example.social.sa.ui.theme.SocialTheme
@@ -67,20 +70,30 @@ import com.example.social.sa.utils.PreviewBothLightAndDark
 fun NavGraphBuilder.addEditPostDest(navController: NavController) {
     composable(Screens.PostReviewScreen.route, enterTransition = {
         slideInVertically()
-    }) {
+    }) { navBackEntry ->
+
         val viewModel = hiltViewModel<PostEditPostViewModel>()
         val state by viewModel.state.collectAsStateWithLifecycle()
         val effect by viewModel.effect.collectAsStateWithLifecycle()
-
+        val resultCameraImage by
+            navBackEntry.savedStateHandle.getStateFlow<String?>(Constants.BITMAP_RESULT_KEY, null)
+                .collectAsStateWithLifecycle()
+        LaunchedEffect(key1 =resultCameraImage) {
+            resultCameraImage?.let {
+                viewModel.onEvent(AddEditPostEvent.PickImage(it))
+            }
+        }
         LaunchedEffect(key1 = effect) {
-            when(effect){
+            when (effect) {
                 is AddEditPostEffect.Navigate -> {
                     navController.navigate((effect as AddEditPostEffect.Navigate).route)
                 }
+
                 null -> {
 
                 }
             }
+            viewModel.resetEffect()
         }
         AddEditPostScreen(state, viewModel::onEvent)
     }
@@ -188,13 +201,13 @@ fun AddEditPostScreen(
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
-            IconsLayout(onEvent=onEvent)
+            IconsLayout(onEvent = onEvent)
         }
     }
 }
 
 @Composable
-fun IconsLayout(modifier: Modifier = Modifier,onEvent: (AddEditPostEvent) -> Unit) {
+fun IconsLayout(modifier: Modifier = Modifier, onEvent: (AddEditPostEvent) -> Unit) {
     HorizontalDivider()
     Row(
         modifier = Modifier
@@ -208,7 +221,7 @@ fun IconsLayout(modifier: Modifier = Modifier,onEvent: (AddEditPostEvent) -> Uni
                 modifier = Modifier.size(24.dp)
             )
         }
-        IconButton(onClick = { onEvent(AddEditPostEvent.Navigate(Screens.CameraPreviewScreen.route))}) {
+        IconButton(onClick = { onEvent(AddEditPostEvent.Navigate(Screens.CameraPreviewScreen.route)) }) {
             Icon(
                 painter = painterResource(id = R.drawable.camera_icon),
                 contentDescription = "camera",

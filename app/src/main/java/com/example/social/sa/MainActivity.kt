@@ -56,7 +56,8 @@ class MainActivity : ComponentActivity() {
                 Manifest.permission.READ_MEDIA_IMAGES,
                 Manifest.permission.READ_EXTERNAL_STORAGE,
                 Manifest.permission.ACCESS_MEDIA_LOCATION,
-                Manifest.permission.CAMERA
+                Manifest.permission.CAMERA,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
             )
         )
 
