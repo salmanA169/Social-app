@@ -89,7 +89,7 @@ fun NavGraphBuilder.cameraDest(navController: NavController) {
                      saveTempFile("sssssssssss",currentBitmap!!)
                  )
                     navController.popBackStack()
-                }, modifier = Modifier.align(Alignment.BottomEnd)) {
+                }, modifier = Modifier.align(Alignment.BottomEnd).offset(-16.dp,-16.dp)) {
                     Text(text = stringResource(id = R.string.use_photo))
                 }
             } else {

@@ -1,9 +1,13 @@
 package com.example.social.sa.screens.home.add_edit_post
 
+import android.provider.MediaStore.Audio.Media
 import android.util.Log
+import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.social.sa.core.FileManager
+import com.example.social.sa.core.MediaType
+import com.example.social.sa.coroutine.DispatcherProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -14,7 +18,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PostEditPostViewModel @Inject constructor(
-    private val fileManager: FileManager
+    private val fileManager: FileManager,
+    private val dispatcherProvider: DispatcherProvider
 ):ViewModel() {
 
     private val _state = MutableStateFlow(AddEditPostState())
@@ -35,21 +40,24 @@ class PostEditPostViewModel @Inject constructor(
     fun onEvent(event: AddEditPostEvent){
         when(event){
             is AddEditPostEvent.PickImage -> {
-                val state = _state.value
-                if (!state.pickedImage.contains(event.imageUri)){
-                    _state.update {
-                        it.copy(
-                            pickedImage = it.pickedImage + event.imageUri
-                        )
+                viewModelScope.launch(dispatcherProvider.io) {
+                    val media = fileManager.getMedia(event.imageUri.toUri())
+                    val state = _state.value
+                    if (!state.pickedImage.contains(media)){
+                        _state.update {
+                            it.copy(
+                                pickedImage = it.pickedImage + media
+                            )
+                        }
                     }
                 }
             }
             is AddEditPostEvent.DeleteImage -> {
                 val state = _state.value
-                if (state.pickedImage.contains(event.imageUri)) {
+                if (state.pickedImage.contains(event.currentMedia)) {
                     _state.update {
                         it.copy(
-                            pickedImage = it.pickedImage - event.imageUri
+                            pickedImage = it.pickedImage - event.currentMedia
                         )
                     }
                 }
@@ -74,6 +82,6 @@ sealed class AddEditPostEffect{
 }
 sealed class AddEditPostEvent{
     class PickImage(val imageUri:String):AddEditPostEvent()
-    class DeleteImage(val imageUri:String):AddEditPostEvent()
+    class DeleteImage(val currentMedia:MediaType):AddEditPostEvent()
     class Navigate(val route:String):AddEditPostEvent()
 }

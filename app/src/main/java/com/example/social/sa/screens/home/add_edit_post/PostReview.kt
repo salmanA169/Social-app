@@ -2,6 +2,9 @@ package com.example.social.sa.screens.home.add_edit_post
 
 import android.graphics.Bitmap
 import android.net.Uri
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.clickable
@@ -51,6 +54,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextDirection
@@ -60,10 +64,13 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
+import coil.ImageLoader
 import coil.compose.AsyncImage
+import coil.decode.VideoFrameDecoder
 import com.example.social.sa.Constants
 import com.example.social.sa.R
 import com.example.social.sa.Screens
+import com.example.social.sa.core.MediaType
 import com.example.social.sa.ui.theme.SocialTheme
 import com.example.social.sa.utils.PreviewBothLightAndDark
 
@@ -76,9 +83,10 @@ fun NavGraphBuilder.addEditPostDest(navController: NavController) {
         val state by viewModel.state.collectAsStateWithLifecycle()
         val effect by viewModel.effect.collectAsStateWithLifecycle()
         val resultCameraImage by
-            navBackEntry.savedStateHandle.getStateFlow<String?>(Constants.BITMAP_RESULT_KEY, null)
-                .collectAsStateWithLifecycle()
-        LaunchedEffect(key1 =resultCameraImage) {
+        navBackEntry.savedStateHandle.getStateFlow<String?>(Constants.BITMAP_RESULT_KEY, null)
+            .collectAsStateWithLifecycle()
+
+        LaunchedEffect(key1 = resultCameraImage) {
             resultCameraImage?.let {
                 viewModel.onEvent(AddEditPostEvent.PickImage(it))
             }
@@ -107,6 +115,15 @@ fun AddEditPostScreen(
 ) {
     var text by remember {
         mutableStateOf("")
+    }
+    val photoPickerLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.PickMultipleVisualMedia(5)
+    ) { uris ->
+        uris?.let {
+            it.forEach {
+                onEvent(AddEditPostEvent.PickImage(it.toString()))
+            }
+        }
     }
     Scaffold(
         topBar = {
@@ -179,7 +196,7 @@ fun AddEditPostScreen(
                     ),
             ) {
                 state.pickedImage.forEach {
-                    PickedImage(imageUri = it) {
+                    PickedImage(mediaType = it) {
                         onEvent(AddEditPostEvent.DeleteImage(it))
                     }
                     Spacer(modifier = Modifier.width(6.dp))
@@ -201,20 +218,30 @@ fun AddEditPostScreen(
                 }
             }
             Spacer(modifier = Modifier.height(8.dp))
-            IconsLayout(onEvent = onEvent)
+            IconsLayout(
+                onEvent = onEvent,
+                onImagePickerClick = {
+                    photoPickerLauncher.launch(
+                        PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageAndVideo)
+                    )
+                })
         }
     }
 }
 
 @Composable
-fun IconsLayout(modifier: Modifier = Modifier, onEvent: (AddEditPostEvent) -> Unit) {
+fun IconsLayout(
+    modifier: Modifier = Modifier,
+    onEvent: (AddEditPostEvent) -> Unit,
+    onImagePickerClick: () -> Unit
+) {
     HorizontalDivider()
     Row(
         modifier = Modifier
             .padding(8.dp)
             .imePadding()
     ) {
-        IconButton(onClick = { /*TODO*/ }) {
+        IconButton(onClick = { onImagePickerClick() }) {
             Icon(
                 painter = painterResource(id = R.drawable.image_icon),
                 contentDescription = "image",
@@ -232,21 +259,40 @@ fun IconsLayout(modifier: Modifier = Modifier, onEvent: (AddEditPostEvent) -> Un
 }
 
 @Composable
-fun PickedImage(modifier: Modifier = Modifier, imageUri: String, onImageDelete: (String) -> Unit) {
+fun PickedImage(
+    modifier: Modifier = Modifier,
+    mediaType: MediaType,
+    onImageDelete: (MediaType) -> Unit
+) {
+    val context = LocalContext.current
+    val videoEnabledLoader = ImageLoader.Builder(context)
+        .components {
+            add(VideoFrameDecoder.Factory())
+        }.build()
     Box {
         AsyncImage(
-            model = imageUri,
+            imageLoader = videoEnabledLoader,
+            model = mediaType.uri,
             contentDescription = "",
-            contentScale = ContentScale.FillBounds,
+            contentScale = ContentScale.Crop,
             modifier = Modifier
-                .size(150.dp)
+                .size(150.dp, 250.dp)
                 .clip(RoundedCornerShape(25f))
         )
         FilledTonalIconButton(
-            onClick = { onImageDelete(imageUri) },
+            onClick = { onImageDelete(mediaType) },
             modifier = Modifier.align(Alignment.TopEnd)
         ) {
             Icon(painter = painterResource(id = R.drawable.close_icon), contentDescription = "")
+        }
+        if (mediaType is MediaType.Video) {
+            Icon(
+                painter = painterResource(id = R.drawable.play_preview_video_icon),
+                contentDescription = "play preview video",
+                modifier = Modifier.align(
+                    Alignment.Center
+                )
+            )
         }
     }
 }
@@ -273,7 +319,13 @@ fun PickImages(
     imageUri: String,
     onEvent: (AddEditPostEvent) -> Unit
 ) {
+    val context = LocalContext.current
+    val videoEnabledLoader = ImageLoader.Builder(context)
+        .components {
+            add(VideoFrameDecoder.Factory())
+        }.build()
     AsyncImage(
+        imageLoader = videoEnabledLoader,
         model = imageUri,
         contentDescription = "",
         modifier = Modifier

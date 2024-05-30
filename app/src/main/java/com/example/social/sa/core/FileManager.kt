@@ -18,6 +18,7 @@ import com.example.social.sa.Constants
 import com.example.social.sa.coroutine.DispatcherProviderImpl
 import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
 import java.io.ByteArrayOutputStream
@@ -35,6 +36,28 @@ class FileManager @Inject constructor(
     companion object {
         private const val ONE_MB: Long = 1024 * 1024
         private const val FIFTY_MB: Long = ONE_MB * 50
+    }
+
+    suspend fun getMedia(uri:Uri):MediaType{
+        return withContext(Dispatchers.IO){
+            val getType = contentResolver.getType(uri)!!
+            if (getType.contains("video")){
+                val duration = getVideoDuration(uri,contentResolver)
+                MediaType.Video(duration,uri.toString())
+            }else {
+                MediaType.Image(uri.toString())
+            }
+        }
+    }
+
+    private fun getVideoDuration(uri: Uri,contentResolver: ContentResolver): Int {
+        val cursor = contentResolver.query(uri, null, null, null, null)
+            ?.use {
+                it.moveToFirst()
+                val durationIndex = it.getColumnIndex(MediaStore.Video.VideoColumns.DURATION)
+                durationIndex
+            }
+        return cursor!!
     }
 
     suspend fun loadFilesExternalStorage(): List<String> {
@@ -98,3 +121,7 @@ class FileManager @Inject constructor(
     }
 }
 
+sealed class MediaType(open val uri:String){
+    data class Video(val duration:Int, override val uri:String):MediaType(uri)
+    data class Image(override val uri:String):MediaType(uri)
+}
