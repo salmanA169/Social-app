@@ -38,17 +38,17 @@ class FileManager @Inject constructor(
         private const val FIFTY_MB: Long = ONE_MB * 50
     }
 
-    suspend fun getMedia(uri:Uri):MediaType{
-        return withContext(Dispatchers.IO){
-            val getType = contentResolver.getType(uri)!!
-            if (getType.contains("video")){
-                val duration = getVideoDuration(uri,contentResolver)
-                MediaType.Video(duration,uri.toString())
-            }else {
-                MediaType.Image(uri.toString())
-            }
-        }
-    }
+//    suspend fun getMedia(uri:Uri):MediaType{
+//        return withContext(Dispatchers.IO){
+//            val getType = contentResolver.getType(uri)!!
+//            if (getType.contains("video")){
+//                val duration = getVideoDuration(uri,contentResolver)
+//                MediaType.Video(duration,uri.toString())
+//            }else {
+//                MediaType.Image(uri.toString())
+//            }
+//        }
+//    }
 
     private fun getVideoDuration(uri: Uri,contentResolver: ContentResolver): Int {
         val cursor = contentResolver.query(uri, null, null, null, null)
@@ -60,14 +60,15 @@ class FileManager @Inject constructor(
         return cursor!!
     }
 
-    suspend fun loadFilesExternalStorage(): List<String> {
+    suspend fun loadFilesExternalStorage(): List<MediaType> {
         return withContext(dispatcherProvider.default) {
-            val collection =
+            val collectionImage =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) MediaStore.Images.Media.getContentUri(
                     MediaStore.VOLUME_EXTERNAL
                 ) else MediaStore.Images.Media.EXTERNAL_CONTENT_URI
             val progection = arrayOf(
                 MediaStore.Images.Media._ID,
+                MediaStore.Images.Media.DATE_ADDED
             )
             val bundle = Bundle().apply {
                 putInt(ContentResolver.QUERY_ARG_LIMIT, 10)
@@ -80,24 +81,63 @@ class FileManager @Inject constructor(
                     ContentResolver.QUERY_SORT_DIRECTION_DESCENDING
                 )
             }
-            val listImage = mutableListOf<String>()
+            val listImage = mutableListOf<MediaType>()
             contentResolver.query(
-                collection,
+                collectionImage,
                 progection,
                 bundle, null
             ).use {
                 val columnId = it!!.getColumnIndexOrThrow(MediaStore.Images.Media._ID)
+                val dateColumn = it!!.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_ADDED)
                 while (it.moveToNext()) {
                     val id = it.getLong(columnId)
+                    val date = it.getInt(dateColumn)
                     val contentUri = ContentUris.withAppendedId(
                         MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
                         id
                     )
 
-                    listImage.add(contentUri.toString())
+                    listImage.add(MediaType.Image(contentUri.toString(),date))
                 }
             }
-            listImage
+            val collectionVideo =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) MediaStore.Video.Media.getContentUri(
+                    MediaStore.VOLUME_EXTERNAL
+                ) else MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+            val progectionVideo = arrayOf(
+                MediaStore.Video.Media._ID,
+                MediaStore.Video.Media.DURATION,MediaStore.Video.Media.DATE_ADDED
+            )
+            val bundleVideo = Bundle().apply {
+                putInt(ContentResolver.QUERY_ARG_LIMIT, 10)
+                putStringArray(
+                    ContentResolver.QUERY_ARG_SORT_COLUMNS,
+                    arrayOf(MediaStore.Video.Media.DATE_ADDED)
+                )
+                putInt(
+                    ContentResolver.QUERY_ARG_SORT_DIRECTION,
+                    ContentResolver.QUERY_SORT_DIRECTION_DESCENDING
+                )
+            }
+            contentResolver.query(
+                collectionVideo,
+                progectionVideo,
+                bundleVideo, null
+            ).use{
+                val columnIdVideo = it!!.getColumnIndexOrThrow(MediaStore.Video.Media._ID)
+                val columnDuration = it.getColumnIndexOrThrow(MediaStore.Video.Media.DURATION)
+                val ColumnDateVideo = it.getColumnIndexOrThrow(MediaStore.Video.Media.DATE_ADDED)
+                while (it.moveToNext()){
+                    val idVideo = it.getLong(columnIdVideo)
+                    val durationVideo = it.getLong(columnDuration)
+                    val contentUri = ContentUris.withAppendedId(collectionVideo,idVideo)
+                    val dateVideo = it.getInt(ColumnDateVideo)
+                    listImage.add(MediaType.Video(dateVideo,contentUri.toString(),durationVideo))
+                }
+            }
+            listImage.sortedByDescending {
+                it.date
+            }
         }
     }
 
@@ -121,7 +161,7 @@ class FileManager @Inject constructor(
     }
 }
 
-sealed class MediaType(open val uri:String){
-    data class Video(val duration:Int, override val uri:String):MediaType(uri)
-    data class Image(override val uri:String):MediaType(uri)
+sealed class MediaType(open val uri:String,open val date :Int){
+    data class Video(override val date:Int, override val uri:String,val duration :Long):MediaType(uri,date)
+    data class Image(override val uri:String, override val date: Int):MediaType(uri,date)
 }

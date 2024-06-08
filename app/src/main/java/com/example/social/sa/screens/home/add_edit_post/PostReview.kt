@@ -1,7 +1,5 @@
 package com.example.social.sa.screens.home.add_edit_post
 
-import android.graphics.Bitmap
-import android.net.Uri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -29,8 +27,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilledTonalIconButton
@@ -44,7 +40,6 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -73,6 +68,7 @@ import com.example.social.sa.Screens
 import com.example.social.sa.core.MediaType
 import com.example.social.sa.ui.theme.SocialTheme
 import com.example.social.sa.utils.PreviewBothLightAndDark
+import kotlin.time.Duration.Companion.milliseconds
 
 fun NavGraphBuilder.addEditPostDest(navController: NavController) {
     composable(Screens.PostReviewScreen.route, enterTransition = {
@@ -213,7 +209,7 @@ fun AddEditPostScreen(
                         CameraIcon()
                     }
                     items(state.images) {
-                        PickImages(imageUri = it, onEvent = onEvent)
+                        PickImages(mediaType = it, onEvent = onEvent)
                     }
                 }
             }
@@ -316,7 +312,7 @@ private fun AddEditPreview() {
 @Composable
 fun PickImages(
     modifier: Modifier = Modifier,
-    imageUri: String,
+    mediaType: MediaType,
     onEvent: (AddEditPostEvent) -> Unit
 ) {
     val context = LocalContext.current
@@ -324,17 +320,30 @@ fun PickImages(
         .components {
             add(VideoFrameDecoder.Factory())
         }.build()
-    AsyncImage(
-        imageLoader = videoEnabledLoader,
-        model = imageUri,
-        contentDescription = "",
-        modifier = Modifier
-            .size(80.dp)
-            .clip(RoundedCornerShape(25f))
-            .clickable {
-                onEvent(AddEditPostEvent.PickImage(imageUri))
-            },
-        contentScale = ContentScale.Crop
-    )
+    val isVideo = remember(mediaType){
+        mediaType is MediaType.Video
+    }
+    Box {
+        AsyncImage(
+            imageLoader = videoEnabledLoader,
+            model = mediaType.uri,
+            contentDescription = "",
+            modifier = Modifier
+                .size(80.dp)
+                .clip(RoundedCornerShape(25f))
+                .clickable {
+                    onEvent(AddEditPostEvent.PickImage(mediaType.uri))
+                },
+            contentScale = ContentScale.Crop
+        )
+        if (isVideo) {
+            Icon(
+                painter = painterResource(id = R.drawable.play_preview_video_icon),
+                contentDescription = "play preview video",
+                modifier = Modifier.align(Alignment.BottomEnd)
+            )
+            Text(text = mediaType.date.toString(),modifier=Modifier.align(Alignment.Center))
+        }
+    }
 
 }

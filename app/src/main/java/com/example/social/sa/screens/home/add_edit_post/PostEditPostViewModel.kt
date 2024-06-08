@@ -41,15 +41,15 @@ class PostEditPostViewModel @Inject constructor(
         when(event){
             is AddEditPostEvent.PickImage -> {
                 viewModelScope.launch(dispatcherProvider.io) {
-                    val media = fileManager.getMedia(event.imageUri.toUri())
-                    val state = _state.value
-                    if (!state.pickedImage.contains(media)){
-                        _state.update {
-                            it.copy(
-                                pickedImage = it.pickedImage + media
-                            )
-                        }
-                    }
+//                    val media = fileManager.getMedia(event.imageUri.toUri())
+//                    val state = _state.value
+//                    if (!state.pickedImage.contains(media)){
+//                        _state.update {
+//                            it.copy(
+//                                pickedImage = it.pickedImage + media
+//                            )
+//                        }
+//                    }
                 }
             }
             is AddEditPostEvent.DeleteImage -> {
