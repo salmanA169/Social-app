@@ -41,17 +41,18 @@ class PostEditPostViewModel @Inject constructor(
         when(event){
             is AddEditPostEvent.PickImage -> {
                 viewModelScope.launch(dispatcherProvider.io) {
-//                    val media = fileManager.getMedia(event.imageUri.toUri())
-//                    val state = _state.value
-//                    if (!state.pickedImage.contains(media)){
-//                        _state.update {
-//                            it.copy(
-//                                pickedImage = it.pickedImage + media
-//                            )
-//                        }
-//                    }
+                    val media = fileManager.getMedia(event.imageUri.toUri())
+                    val state = _state.value
+                    if (state.pickedImage.find { it.id == media.id }==null ){
+                        _state.update {
+                            it.copy(
+                                pickedImage = it.pickedImage + media
+                            )
+                        }
+                    }
                 }
             }
+
             is AddEditPostEvent.DeleteImage -> {
                 val state = _state.value
                 if (state.pickedImage.contains(event.currentMedia)) {
@@ -69,6 +70,17 @@ class PostEditPostViewModel @Inject constructor(
                     AddEditPostEffect.Navigate(event.route)
                 }
             }
+
+            is AddEditPostEvent.PickedFromCamera ->{
+                val state = _state.value
+                if (!state.pickedImage.contains(event.mediaType)){
+                    _state.update {
+                        it.copy(
+                            pickedImage = it.pickedImage + event.mediaType
+                        )
+                    }
+                }
+            }
         }
     }
     fun resetEffect(){
@@ -84,4 +96,5 @@ sealed class AddEditPostEvent{
     class PickImage(val imageUri:String):AddEditPostEvent()
     class DeleteImage(val currentMedia:MediaType):AddEditPostEvent()
     class Navigate(val route:String):AddEditPostEvent()
+    data class PickedFromCamera(val mediaType: MediaType):AddEditPostEvent()
 }

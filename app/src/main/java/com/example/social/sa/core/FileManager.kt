@@ -13,6 +13,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Log
 import androidx.annotation.RequiresApi
+import androidx.core.database.getLongOrNull
 import androidx.core.graphics.decodeBitmap
 import com.example.social.sa.Constants
 import com.example.social.sa.coroutine.DispatcherProviderImpl
@@ -38,18 +39,40 @@ class FileManager @Inject constructor(
         private const val FIFTY_MB: Long = ONE_MB * 50
     }
 
-//    suspend fun getMedia(uri:Uri):MediaType{
-//        return withContext(Dispatchers.IO){
-//            val getType = contentResolver.getType(uri)!!
-//            if (getType.contains("video")){
-//                val duration = getVideoDuration(uri,contentResolver)
-//                MediaType.Video(duration,uri.toString())
-//            }else {
-//                MediaType.Image(uri.toString())
-//            }
-//        }
-//    }
+    suspend fun getMedia(uri:Uri):MediaType{
+        return withContext(dispatcherProvider.io){
+            val getType = contentResolver.getType(uri)!!
+            val getMediaDate = getDateMedia(uri,contentResolver)
+            val getMediaID = getMediaID(uri,contentResolver)
+            if (getType.contains("video")){
+                val duration = getVideoDuration(uri,contentResolver)
+                MediaType.Video(getMediaID,getMediaDate,uri.toString(),duration.toLong())
+            }else {
+                MediaType.Image(getMediaID,uri.toString(),getMediaDate)
+            }
+        }
+    }
 
+    private fun getMediaID(uri: Uri,contentResolver: ContentResolver):Long{
+        val cursor = contentResolver.query(uri, arrayOf(
+            MediaStore.Images.Media._ID,
+        ), null, null, null)
+            ?.use {
+                it.moveToFirst()
+                val idIndex = it.getColumnIndex(MediaStore.Images.Media._ID)
+                it.getLongOrNull(idIndex) ?: uri.lastPathSegment!!.toLong()
+            }
+        return cursor!!
+    }
+    private fun getDateMedia(uri: Uri,contentResolver: ContentResolver):Int{
+        val cursor = contentResolver.query(uri, null, null, null, null)
+            ?.use {
+                it.moveToFirst()
+                val dateIndex = it.getColumnIndex(MediaStore.Images.Media.DATE_ADDED)
+                dateIndex
+            }
+        return cursor!!
+    }
     private fun getVideoDuration(uri: Uri,contentResolver: ContentResolver): Int {
         val cursor = contentResolver.query(uri, null, null, null, null)
             ?.use {
@@ -97,7 +120,7 @@ class FileManager @Inject constructor(
                         id
                     )
 
-                    listImage.add(MediaType.Image(contentUri.toString(),date))
+                    listImage.add(MediaType.Image(id,contentUri.toString(),date))
                 }
             }
             val collectionVideo =
@@ -132,7 +155,7 @@ class FileManager @Inject constructor(
                     val durationVideo = it.getLong(columnDuration)
                     val contentUri = ContentUris.withAppendedId(collectionVideo,idVideo)
                     val dateVideo = it.getInt(ColumnDateVideo)
-                    listImage.add(MediaType.Video(dateVideo,contentUri.toString(),durationVideo))
+                    listImage.add(MediaType.Video(idVideo,dateVideo,contentUri.toString(),durationVideo))
                 }
             }
             listImage.sortedByDescending {
@@ -161,7 +184,7 @@ class FileManager @Inject constructor(
     }
 }
 
-sealed class MediaType(open val uri:String,open val date :Int){
-    data class Video(override val date:Int, override val uri:String,val duration :Long):MediaType(uri,date)
-    data class Image(override val uri:String, override val date: Int):MediaType(uri,date)
+sealed class MediaType(open val id:Long,open val uri:String,open val date :Int){
+    data class Video(override val id: Long, override val date:Int, override val uri:String, val duration :Long):MediaType(id,uri,date)
+    data class Image(override val id: Long, override val uri:String, override val date: Int):MediaType(id,uri,date)
 }
