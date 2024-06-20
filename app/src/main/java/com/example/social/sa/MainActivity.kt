@@ -38,6 +38,7 @@ import com.example.social.sa.component.HomeAppBar
 import com.example.social.sa.screens.camera.cameraDest
 import com.example.social.sa.screens.home.homeDest
 import com.example.social.sa.screens.home.add_edit_post.addEditPostDest
+import com.example.social.sa.screens.preview.mediaPreviewDest
 import com.example.social.sa.screens.register.registerDest
 import com.example.social.sa.ui.theme.SocialTheme
 import dagger.hilt.android.AndroidEntryPoint
@@ -169,6 +170,7 @@ fun MainScreen() {
             }
             registerDest(controller)
             cameraDest(controller)
+            mediaPreviewDest(navController = controller)
         }
     }
 }

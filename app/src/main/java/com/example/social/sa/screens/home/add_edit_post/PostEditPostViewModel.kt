@@ -65,6 +65,7 @@ class PostEditPostViewModel @Inject constructor(
 
             }
 
+
             is AddEditPostEvent.Navigate -> {
                 _effect.update {
                     AddEditPostEffect.Navigate(event.route)
@@ -81,6 +82,12 @@ class PostEditPostViewModel @Inject constructor(
                     }
                 }
             }
+
+            is AddEditPostEvent.NavigateSafeArg<*> -> {
+                _effect.update {
+                    AddEditPostEffect.NavigateSafeArg(event.route)
+                }
+            }
         }
     }
     fun resetEffect(){
@@ -91,10 +98,13 @@ class PostEditPostViewModel @Inject constructor(
 }
 sealed class AddEditPostEffect{
     class Navigate(val route:String):AddEditPostEffect()
+    class NavigateSafeArg<T>(val route:T):AddEditPostEffect()
 }
 sealed class AddEditPostEvent{
     class PickImage(val imageUri:String):AddEditPostEvent()
     class DeleteImage(val currentMedia:MediaType):AddEditPostEvent()
     class Navigate(val route:String):AddEditPostEvent()
     data class PickedFromCamera(val mediaType: MediaType):AddEditPostEvent()
+    class NavigateSafeArg<T>(val route:T):AddEditPostEvent()
+
 }

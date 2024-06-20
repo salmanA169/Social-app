@@ -9,12 +9,25 @@ import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NamedNavArgument
 import androidx.navigation.NavArgs
+import androidx.navigation.navArgument
+import com.example.social.sa.core.MediaType
+import kotlinx.serialization.Serializable
 
 sealed class Screens (val route:String) {
 
 
     abstract val args :List<NamedNavArgument>
 
+    @Serializable
+    data class MediaPreviewScreen(val mediaType: String)
+
+//    data object MediaPreviewScreen:Screens("media-preview-route"){
+//        override val args: List<NamedNavArgument>
+//            get() = listOf( navArgument(ConstantsArg.MEDIA_PREVIEW_SCREEN_MEDIA_TYPE_ARG){
+//                type = NavArgs
+//            })
+//
+//    }
     object RegisterScreen:Screens("register-route"){
         override val args: List<NamedNavArgument>
             get() = emptyList()

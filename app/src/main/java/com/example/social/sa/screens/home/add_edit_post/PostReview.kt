@@ -100,8 +100,13 @@ fun NavGraphBuilder.addEditPostDest(navController: NavController) {
                     navController.navigate((effect as AddEditPostEffect.Navigate).route)
                 }
 
+
                 null -> {
 
+                }
+
+                is AddEditPostEffect.NavigateSafeArg<*> -> {
+                    navController.navigate((effect as AddEditPostEffect.NavigateSafeArg<*>).route as Any)
                 }
             }
             viewModel.resetEffect()
@@ -199,9 +204,11 @@ fun AddEditPostScreen(
                     ),
             ) {
                 state.pickedImage.forEach {
-                    PickedImage(mediaType = it) {
+                    PickedImage(mediaType = it, onImageClick = {
+                        onEvent(AddEditPostEvent.NavigateSafeArg(Screens.MediaPreviewScreen(it)))
+                    }, onImageDelete = {
                         onEvent(AddEditPostEvent.DeleteImage(it))
-                    }
+                    })
                     Spacer(modifier = Modifier.width(6.dp))
                 }
             }
@@ -265,7 +272,8 @@ fun IconsLayout(
 fun PickedImage(
     modifier: Modifier = Modifier,
     mediaType: MediaType,
-    onImageDelete: (MediaType) -> Unit
+    onImageDelete: (MediaType) -> Unit,
+    onImageClick:(String)->Unit
 ) {
     val context = LocalContext.current
     val videoEnabledLoader = ImageLoader.Builder(context)
@@ -280,7 +288,9 @@ fun PickedImage(
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(150.dp, 250.dp)
-                .clip(RoundedCornerShape(25f))
+                .clip(RoundedCornerShape(25f)).clickable {
+                    onImageClick(mediaType.uri)
+                }
         )
         FilledTonalIconButton(
             onClick = { onImageDelete(mediaType) },

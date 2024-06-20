@@ -4,4 +4,5 @@ plugins {
     id("com.google.dagger.hilt.android") version "2.49" apply false
     id("org.jetbrains.kotlin.android") version "1.9.20" apply false
     id("com.google.gms.google-services") version "4.3.15" apply false
+    id("org.jetbrains.kotlin.plugin.serialization") version "1.9.20" apply false
 }

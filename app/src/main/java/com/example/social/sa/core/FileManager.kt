@@ -22,6 +22,7 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.Serializable
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
@@ -183,8 +184,9 @@ class FileManager @Inject constructor(
         }
     }
 }
-
+@Serializable
 sealed class MediaType(open val id:Long,open val uri:String,open val date :Int){
     data class Video(override val id: Long, override val date:Int, override val uri:String, val duration :Long):MediaType(id,uri,date)
+
     data class Image(override val id: Long, override val uri:String, override val date: Int):MediaType(id,uri,date)
 }

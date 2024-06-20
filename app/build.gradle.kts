@@ -7,7 +7,7 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services")
     id("org.jlleitschuh.gradle.ktlint") version "11.1.0"
-
+    id("org.jetbrains.kotlin.plugin.serialization")
 }
 
 android {
@@ -71,10 +71,10 @@ ktlint{
 dependencies {
 
     implementation("androidx.core:core-ktx:1.13.1")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.7.0")
+    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.2")
+    implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.2")
     implementation("androidx.activity:activity-compose:1.9.0")
-    implementation(platform("androidx.compose:compose-bom:2024.05.00"))
+    implementation(platform("androidx.compose:compose-bom:2024.06.00"))
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -87,7 +87,7 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
 
-    val nav_version = "2.7.7"
+    val nav_version = "2.8.0-beta03"
 
     implementation("androidx.navigation:navigation-compose:$nav_version")
 
@@ -140,5 +140,8 @@ dependencies {
     implementation ("androidx.camera:camera-extensions:${camerax_version}")
     implementation("io.coil-kt:coil-video:2.6.0")
 
+    implementation("androidx.media3:media3-exoplayer:1.2.0")
+    implementation("androidx.media3:media3-ui:1.2.0")
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
 }
