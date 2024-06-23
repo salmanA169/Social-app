@@ -86,7 +86,7 @@ fun MainScreen() {
     val currentDestination = navBackStackEntry?.destination
     LaunchedEffect(key1 = state.shouldNavigateLoginScreen) {
         if (state.shouldNavigateLoginScreen) {
-            controller.navigate(Screens.RegisterScreen.route) {
+            controller.navigate(Screens.RegisterScreen) {
                 popUpTo(Screens.HomeScreen.route) {
                     inclusive = true
                 }
@@ -139,7 +139,7 @@ fun MainScreen() {
     }, floatingActionButton = {
         AnimatedVisibility(visible = shouldShow) {
             FloatingActionButton(onClick = {
-                controller.navigate(Screens.PostReviewScreen.route)
+                controller.navigate(Screens.PostReviewScreen)
             }) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
             }

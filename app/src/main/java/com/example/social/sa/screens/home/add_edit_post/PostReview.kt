@@ -69,16 +69,15 @@ import com.example.social.sa.Constants
 import com.example.social.sa.R
 import com.example.social.sa.Screens
 import com.example.social.sa.core.MediaType
+import com.example.social.sa.core.MediaTypeData
 import com.example.social.sa.ui.theme.SocialTheme
 import com.example.social.sa.utils.PreviewBothLightAndDark
 import com.example.social.sa.utils.formatSecondAndMinute
 import java.time.LocalDate
-import java.time.LocalTime
 import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.DurationUnit
 
 fun NavGraphBuilder.addEditPostDest(navController: NavController) {
-    composable(Screens.PostReviewScreen.route, enterTransition = {
+    composable<Screens.PostReviewScreen>(enterTransition = {
         slideInVertically()
     }) { navBackEntry ->
 
@@ -91,7 +90,7 @@ fun NavGraphBuilder.addEditPostDest(navController: NavController) {
 
         LaunchedEffect(key1 = resultCameraImage) {
             resultCameraImage?.let {
-                viewModel.onEvent(AddEditPostEvent.PickedFromCamera(MediaType.Image(0,it,0)))
+                viewModel.onEvent(AddEditPostEvent.PickedFromCamera(MediaTypeData.Image(0,it,0)))
             }
         }
         LaunchedEffect(key1 = effect) {
@@ -103,10 +102,6 @@ fun NavGraphBuilder.addEditPostDest(navController: NavController) {
 
                 null -> {
 
-                }
-
-                is AddEditPostEffect.NavigateSafeArg<*> -> {
-                    navController.navigate((effect as AddEditPostEffect.NavigateSafeArg<*>).route as Any)
                 }
             }
             viewModel.resetEffect()
@@ -204,8 +199,8 @@ fun AddEditPostScreen(
                     ),
             ) {
                 state.pickedImage.forEach {
-                    PickedImage(mediaType = it, onImageClick = {
-                        onEvent(AddEditPostEvent.NavigateSafeArg(Screens.MediaPreviewScreen(it)))
+                    PickedImage(mediaType = it, onImageClick = {mediaType,mediaUri->
+                        onEvent(AddEditPostEvent.Navigate(Screens.MediaPreviewScreen(mediaType,mediaUri)))
                     }, onImageDelete = {
                         onEvent(AddEditPostEvent.DeleteImage(it))
                     })
@@ -258,7 +253,7 @@ fun IconsLayout(
                 modifier = Modifier.size(24.dp)
             )
         }
-        IconButton(onClick = { onEvent(AddEditPostEvent.Navigate(Screens.CameraPreviewScreen.route)) }) {
+        IconButton(onClick = { onEvent(AddEditPostEvent.Navigate(Screens.CameraPreviewScreen)) }) {
             Icon(
                 painter = painterResource(id = R.drawable.camera_icon),
                 contentDescription = "camera",
@@ -271,15 +266,22 @@ fun IconsLayout(
 @Composable
 fun PickedImage(
     modifier: Modifier = Modifier,
-    mediaType: MediaType,
-    onImageDelete: (MediaType) -> Unit,
-    onImageClick:(String)->Unit
+    mediaType: MediaTypeData,
+    onImageDelete: (MediaTypeData) -> Unit,
+    onImageClick:(mediaType:String,mediaUri:String)->Unit
 ) {
     val context = LocalContext.current
     val videoEnabledLoader = ImageLoader.Builder(context)
         .components {
             add(VideoFrameDecoder.Factory())
         }.build()
+    val mMediaType  = remember(mediaType){
+        if (mediaType is MediaTypeData.Video){
+            MediaType.VIDEO.toString()
+        }else{
+            MediaType.IMAGE.toString()
+        }
+    }
     Box {
         AsyncImage(
             imageLoader = videoEnabledLoader,
@@ -289,7 +291,7 @@ fun PickedImage(
             modifier = Modifier
                 .size(150.dp, 250.dp)
                 .clip(RoundedCornerShape(25f)).clickable {
-                    onImageClick(mediaType.uri)
+                    onImageClick(mMediaType,mediaType.uri)
                 }
         )
         FilledTonalIconButton(
@@ -298,7 +300,7 @@ fun PickedImage(
         ) {
             Icon(painter = painterResource(id = R.drawable.close_icon), contentDescription = "")
         }
-        if (mediaType is MediaType.Video) {
+        if (mediaType is MediaTypeData.Video) {
             Icon(
                 painter = painterResource(id = R.drawable.play_preview_video_icon),
                 contentDescription = "play preview video",
@@ -331,7 +333,7 @@ private fun AddEditPreview() {
 private fun PikedImagePreview() {
     SocialTheme {
         PickImages(
-            mediaType = MediaType.Video(
+            mediaType = MediaTypeData.Video(
                 0,LocalDate.now().toEpochDay().toInt(),
                 "",
                 20000L
@@ -345,7 +347,7 @@ private fun PikedImagePreview() {
 @Composable
 fun PickImages(
     modifier: Modifier = Modifier,
-    mediaType: MediaType,
+    mediaType: MediaTypeData,
     onEvent: (AddEditPostEvent) -> Unit
 ) {
     val context = LocalContext.current
@@ -354,7 +356,7 @@ fun PickImages(
             add(VideoFrameDecoder.Factory())
         }.build()
     val isVideo = remember(mediaType) {
-        mediaType is MediaType.Video
+        mediaType is MediaTypeData.Video
     }
     Box {
         AsyncImage(
@@ -371,7 +373,7 @@ fun PickImages(
         )
         if (isVideo) {
             Text(
-                text = (mediaType as MediaType.Video).duration.milliseconds.formatSecondAndMinute(),
+                text = (mediaType as MediaTypeData.Video).duration.milliseconds.formatSecondAndMinute(),
                 modifier = Modifier.offset(6.dp, (-8).dp).background(MaterialTheme.colorScheme.surfaceContainerLow,
                     RoundedCornerShape(16.dp)
                 ).padding(10.dp, 4.dp).align(Alignment.BottomStart),

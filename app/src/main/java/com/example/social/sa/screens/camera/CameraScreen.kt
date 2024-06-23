@@ -63,7 +63,7 @@ import com.example.social.sa.utils.updateCurrentCamera
 
 fun NavGraphBuilder.cameraDest(navController: NavController) {
 
-    composable(Screens.CameraPreviewScreen.route) {navBackEntry->
+    composable<Screens.CameraPreviewScreen> {navBackEntry->
         Box(
             modifier = Modifier
                 .fillMaxSize()

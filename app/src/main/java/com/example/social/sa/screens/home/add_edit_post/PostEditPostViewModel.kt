@@ -1,12 +1,10 @@
 package com.example.social.sa.screens.home.add_edit_post
 
-import android.provider.MediaStore.Audio.Media
-import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.social.sa.core.FileManager
-import com.example.social.sa.core.MediaType
+import com.example.social.sa.core.MediaTypeData
 import com.example.social.sa.coroutine.DispatcherProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
@@ -83,11 +81,6 @@ class PostEditPostViewModel @Inject constructor(
                 }
             }
 
-            is AddEditPostEvent.NavigateSafeArg<*> -> {
-                _effect.update {
-                    AddEditPostEffect.NavigateSafeArg(event.route)
-                }
-            }
         }
     }
     fun resetEffect(){
@@ -97,14 +90,11 @@ class PostEditPostViewModel @Inject constructor(
     }
 }
 sealed class AddEditPostEffect{
-    class Navigate(val route:String):AddEditPostEffect()
-    class NavigateSafeArg<T>(val route:T):AddEditPostEffect()
+    class Navigate(val route:Any):AddEditPostEffect()
 }
 sealed class AddEditPostEvent{
     class PickImage(val imageUri:String):AddEditPostEvent()
-    class DeleteImage(val currentMedia:MediaType):AddEditPostEvent()
-    class Navigate(val route:String):AddEditPostEvent()
-    data class PickedFromCamera(val mediaType: MediaType):AddEditPostEvent()
-    class NavigateSafeArg<T>(val route:T):AddEditPostEvent()
-
+    class DeleteImage(val currentMedia:MediaTypeData):AddEditPostEvent()
+    class Navigate(val route:Any):AddEditPostEvent()
+    data class PickedFromCamera(val mediaType: MediaTypeData):AddEditPostEvent()
 }

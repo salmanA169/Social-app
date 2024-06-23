@@ -58,7 +58,7 @@ import com.example.social.sa.ui.theme.SocialTheme
 import com.example.social.sa.utils.PreviewBothLightAndDark
 
 fun NavGraphBuilder.registerDest(navController: NavController) {
-    composable(Screens.RegisterScreen.route) {
+    composable<Screens.RegisterScreen>() {
         val registerViewModel = hiltViewModel<RegisterViewModel>()
         val context = LocalContext.current
         val state by registerViewModel.state.collectAsState()
@@ -67,7 +67,7 @@ fun NavGraphBuilder.registerDest(navController: NavController) {
             when (effect) {
                 is RegisterEffect.Navigate -> {
                     navController.navigate((effect as RegisterEffect.Navigate).route) {
-                        popUpTo(Screens.RegisterScreen.route) {
+                        popUpTo(Screens.RegisterScreen) {
                             inclusive = true
                         }
                     }

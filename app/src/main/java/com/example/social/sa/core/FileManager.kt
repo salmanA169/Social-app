@@ -4,25 +4,16 @@ import android.content.ContentResolver
 import android.content.ContentUris
 import android.content.Context
 import android.graphics.Bitmap
-import android.graphics.Bitmap.CompressFormat
 import android.graphics.ImageDecoder
-import android.graphics.ImageFormat
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
-import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.core.database.getLongOrNull
 import androidx.core.graphics.decodeBitmap
-import com.example.social.sa.Constants
 import com.example.social.sa.coroutine.DispatcherProviderImpl
-import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.qualifiers.ApplicationContext
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.tasks.await
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.Serializable
 import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
@@ -40,16 +31,16 @@ class FileManager @Inject constructor(
         private const val FIFTY_MB: Long = ONE_MB * 50
     }
 
-    suspend fun getMedia(uri:Uri):MediaType{
+    suspend fun getMedia(uri:Uri):MediaTypeData{
         return withContext(dispatcherProvider.io){
             val getType = contentResolver.getType(uri)!!
             val getMediaDate = getDateMedia(uri,contentResolver)
             val getMediaID = getMediaID(uri,contentResolver)
             if (getType.contains("video")){
                 val duration = getVideoDuration(uri,contentResolver)
-                MediaType.Video(getMediaID,getMediaDate,uri.toString(),duration.toLong())
+                MediaTypeData.Video(getMediaID,getMediaDate,uri.toString(),duration.toLong())
             }else {
-                MediaType.Image(getMediaID,uri.toString(),getMediaDate)
+                MediaTypeData.Image(getMediaID,uri.toString(),getMediaDate)
             }
         }
     }
@@ -84,7 +75,7 @@ class FileManager @Inject constructor(
         return cursor!!
     }
 
-    suspend fun loadFilesExternalStorage(): List<MediaType> {
+    suspend fun loadFilesExternalStorage(): List<MediaTypeData> {
         return withContext(dispatcherProvider.default) {
             val collectionImage =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) MediaStore.Images.Media.getContentUri(
@@ -105,7 +96,7 @@ class FileManager @Inject constructor(
                     ContentResolver.QUERY_SORT_DIRECTION_DESCENDING
                 )
             }
-            val listImage = mutableListOf<MediaType>()
+            val listImage = mutableListOf<MediaTypeData>()
             contentResolver.query(
                 collectionImage,
                 progection,
@@ -121,7 +112,7 @@ class FileManager @Inject constructor(
                         id
                     )
 
-                    listImage.add(MediaType.Image(id,contentUri.toString(),date))
+                    listImage.add(MediaTypeData.Image(id,contentUri.toString(),date))
                 }
             }
             val collectionVideo =
@@ -156,7 +147,7 @@ class FileManager @Inject constructor(
                     val durationVideo = it.getLong(columnDuration)
                     val contentUri = ContentUris.withAppendedId(collectionVideo,idVideo)
                     val dateVideo = it.getInt(ColumnDateVideo)
-                    listImage.add(MediaType.Video(idVideo,dateVideo,contentUri.toString(),durationVideo))
+                    listImage.add(MediaTypeData.Video(idVideo,dateVideo,contentUri.toString(),durationVideo))
                 }
             }
             listImage.sortedByDescending {
@@ -184,9 +175,11 @@ class FileManager @Inject constructor(
         }
     }
 }
-@Serializable
-sealed class MediaType(open val id:Long,open val uri:String,open val date :Int){
-    data class Video(override val id: Long, override val date:Int, override val uri:String, val duration :Long):MediaType(id,uri,date)
 
-    data class Image(override val id: Long, override val uri:String, override val date: Int):MediaType(id,uri,date)
+sealed class MediaTypeData(open val id:Long, open val uri:String, open val date :Int){
+    data class Video(override val id: Long, override val date:Int, override val uri:String, val duration :Long):MediaTypeData(id,uri,date)
+    data class Image(override val id: Long, override val uri:String, override val date: Int):MediaTypeData(id,uri,date)
+}
+enum class MediaType{
+    IMAGE,VIDEO
 }
