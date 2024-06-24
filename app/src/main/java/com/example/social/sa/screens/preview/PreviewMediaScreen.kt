@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -15,6 +16,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.compose.ui.zIndex
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
@@ -55,7 +57,9 @@ fun PlayVideo(
 fun NavGraphBuilder.mediaPreviewDest(navController: NavController) {
     composable<Screens.MediaPreviewScreen> {
         val mediaData = it.toRoute<Screens.MediaPreviewScreen>()
-        PreviewMediaScreen(mediaScreenData = MediaScreenData(mediaType = MediaType.valueOf(mediaData.mediaType), mediaUri = mediaData.uri))
+        PreviewMediaScreen(mediaScreenData = MediaScreenData(mediaType = MediaType.valueOf(mediaData.mediaType), mediaUri = mediaData.uri)){
+            navController.popBackStack()
+        }
     }
 }
 
@@ -67,10 +71,11 @@ data class MediaScreenData(
 @Composable
 fun PreviewMediaScreen(
     modifier: Modifier = Modifier,
-    mediaScreenData: MediaScreenData
+    mediaScreenData: MediaScreenData,
+    onCloseClick:()->Unit
 ) {
     Box(modifier = modifier.fillMaxSize().systemBarsPadding()) {
-        FilledIconButton(onClick = { /*TODO*/ }, modifier = Modifier.offset(16.dp)) {
+        FilledTonalIconButton(onClick = { onCloseClick() }, modifier = Modifier.offset(16.dp)) {
             Icon(
                 painter = painterResource(id = R.drawable.close_icon),
                 contentDescription = "Close Icon"
