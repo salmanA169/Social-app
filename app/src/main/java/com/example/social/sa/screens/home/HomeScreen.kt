@@ -1,5 +1,6 @@
 package com.example.social.sa.screens.home
 
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -31,6 +32,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -99,16 +101,15 @@ fun HomeScreen(
         val pagerState = rememberPagerState {
             tabs.size
         }
+        var currentTabs by remember{
+            mutableStateOf(TabItem.HOME)
+        }
         val scope = rememberCoroutineScope()
-        TabRow(selectedTabIndex = pagerState.currentPage) {
-            tabs.forEachIndexed { index, tabItem ->
-                Tab(selected = index == pagerState.currentPage, onClick = {
-                    scope.launch {
-                        pagerState.animateScrollToPage(index)
-                    }
-                }, text = {
-                    Text(text = stringResource(id = tabItem.tabName))
-                })
+        FilterHomePosts(currentTabItem = currentTabs, tabs =tabs ) {
+            scope.launch {
+                Log.d("Home screen compose", "HomeScreen: called index $it")
+                currentTabs = TabItem.values()[it]
+                pagerState.animateScrollToPage(it)
             }
         }
         HorizontalPager(
@@ -117,11 +118,11 @@ fun HomeScreen(
         ) {
             when (tabs[it]) {
                 TabItem.HOME -> {
-                    Posts(state.homePosts)
+//                    Posts(state.homePosts)
                 }
 
                 TabItem.FOR_YOU -> {
-                    Posts(state.forYouPosts)
+//                    Posts(state.forYouPosts)
                 }
             }
         }
@@ -129,26 +130,43 @@ fun HomeScreen(
 }
 
 @Composable
-fun Posts(
-    posts: List<Posts>
+fun FilterHomePosts(
+    modifier: Modifier = Modifier,
+    currentTabItem: TabItem,
+    tabs: List<TabItem>,
+    onClick:(Int)->Unit
 ) {
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(posts) {
-            Post(
-                postId = it.postId,
-                uidUser = it.uidUser,
-                profileImage = it.profileUser,
-                userName = it.userName,
-                displayName = it.userName,
-                dateTime = it.dateTime,
-                imageContent = it.imageContent,
-                contentText = it.contentText,
-                comments = it.comments.size,
-                likes = it.likes.size
-            )
+    // TODO: continue here
+    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        tabs.forEach {
+            FilterChip(shape = CircleShape,selected = currentTabItem == it, onClick = {
+            onClick(it.ordinal)
+            }, label = { Text(text = stringResource(id = it.tabName),modifier = Modifier.padding(6.dp)) })
         }
     }
 }
+
+//@Composable
+//fun Posts(
+//    posts: List<Posts>
+//) {
+//    LazyColumn(modifier = Modifier.fillMaxSize()) {
+//        items(posts) {
+//            Post(
+//                postId = it.postId,
+//                uidUser = it.uidUser,
+//                profileImage = it.profileUser,
+//                userName = it.userName,
+//                displayName = it.userName,
+//                dateTime = it.dateTime,
+//                imageContent = it.imageContent,
+//                contentText = it.contentText,
+//                comments = it.comments.size,
+//                likes = it.likes.size
+//            )
+//        }
+//    }
+//}
 
 @Composable
 fun Post(

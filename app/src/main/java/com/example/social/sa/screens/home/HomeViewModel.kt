@@ -29,15 +29,6 @@ class HomeViewModel @Inject constructor() : ViewModel() {
             delay(2000)
             _state.update {
                 it.copy(
-                    homePosts = List(20) {
-                        com.example.social.sa.model.Posts(
-                            it.toString(), "", images.random(), "salman", "2d",
-                            images.random(),
-                            listContentTest.random(),
-                            emptyList(),
-                            emptyList()
-                        )
-                    },
                     isLoading = false
                 )
             }

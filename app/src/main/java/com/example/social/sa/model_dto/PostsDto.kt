@@ -16,7 +16,7 @@ data class PostsDto(
     val comments:List<CommentsPost> = emptyList(),
     val likes:List<String> = emptyList()
 )
-fun PostsDto.toPost() = Posts(
-    postId,uidUser,profileUser,userName,dateTime.format(),imageContent,contentText?:"",comments,likes
-)
+//fun PostsDto.toPost() = Posts(
+//    postId,uidUser,profileUser,userName,dateTime.format(),imageContent,contentText?:"",comments,likes
+//)
 
