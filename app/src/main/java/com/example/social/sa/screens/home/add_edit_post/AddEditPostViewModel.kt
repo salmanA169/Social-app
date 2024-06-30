@@ -15,7 +15,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class PostEditPostViewModel @Inject constructor(
+class AddEditPostViewModel @Inject constructor(
     private val fileManager: FileManager,
     private val dispatcherProvider: DispatcherProvider
 ):ViewModel() {

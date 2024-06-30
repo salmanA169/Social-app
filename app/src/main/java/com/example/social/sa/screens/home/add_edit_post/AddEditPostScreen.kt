@@ -81,7 +81,7 @@ fun NavGraphBuilder.addEditPostDest(navController: NavController) {
         slideInVertically()
     }) { navBackEntry ->
 
-        val viewModel = hiltViewModel<PostEditPostViewModel>()
+        val viewModel = hiltViewModel<AddEditPostViewModel>()
         val state by viewModel.state.collectAsStateWithLifecycle()
         val effect by viewModel.effect.collectAsStateWithLifecycle()
         val resultCameraImage by
