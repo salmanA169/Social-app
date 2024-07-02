@@ -19,3 +19,7 @@ fun Timestamp.format():String{
     val currentDate = LocalDateTime.now()
     return currentDate.until(postDate,ChronoUnit.SECONDS).toString()
 }
+fun Long.format():String{
+    val timeStampDate = Timestamp(this,0)
+    return "1d"
+}

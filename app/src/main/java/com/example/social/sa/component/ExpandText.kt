@@ -18,6 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.TextLayoutResult
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import kotlin.math.log
@@ -28,6 +29,7 @@ fun ExpandText(
     showMore: Boolean = false,
     text: String,
     maxLines: Int = 4,
+    style: TextStyle = MaterialTheme.typography.bodyMedium.copy(LocalContentColor.current),
     onExpandClick: (Boolean) -> Unit
 ) {
     var textLayout by remember {
@@ -90,7 +92,7 @@ fun ExpandText(
         maxLines = if (showMore) Int.MAX_VALUE else maxLines,
         onTextLayout = { textLayout = it },
         modifier = modifier,
-        style = MaterialTheme.typography.bodyMedium.copy(LocalContentColor.current)
+        style = style
 
     ) { offset ->
         annotatedString?.let {

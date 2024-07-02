@@ -4,6 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
 
+val likeColor = Color(0xffFC3E37)
+val likeSurfaceColor = Color(0xffFFEBEB)
+
+
 val primaryLight = Color(0xFF3C6090)
 val onPrimaryLight = Color(0xFFFFFFFF)
 val primaryContainerLight = Color(0xFFD4E3FF)

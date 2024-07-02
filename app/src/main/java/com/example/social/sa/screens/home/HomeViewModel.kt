@@ -29,7 +29,164 @@ class HomeViewModel @Inject constructor() : ViewModel() {
             delay(2000)
             _state.update {
                 it.copy(
-                    isLoading = false
+                    isLoading = false,
+                    homePosts = listOf(
+                        com.example.social.sa.model.Posts(
+                            "",
+                            "",
+                            "@salman123",
+                            "salman Test",
+                            "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+                            1719868589,
+                            listContentTest.shuffled()[0],
+                            images.shuffled(),
+                            6,
+                            4, 4
+                        ),
+                        com.example.social.sa.model.Posts(
+                            "",
+                            "",
+                            "@salman123",
+                            "salman Test",
+                            "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+                            1719868589,
+                            listContentTest.shuffled()[0],
+                            images.shuffled(),
+                            6,
+                            4, 4
+                        ),
+                        com.example.social.sa.model.Posts(
+                            "",
+                            "",
+                            "@salman123",
+                            "salman Test",
+                            "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+                            1719868589,
+                            listContentTest.shuffled()[0],
+                            images.shuffled(),
+                            6,
+                            4, 4
+                        ),com.example.social.sa.model.Posts(
+                            "",
+                            "",
+                            "@salman123",
+                            "salman Test",
+                            "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+                            1719868589,
+                            listContentTest.shuffled()[0],
+                            images.shuffled(),
+                            6,
+                            4, 4
+                        )
+                        ,com.example.social.sa.model.Posts(
+                            "",
+                            "",
+                            "@salman123",
+                            "salman Test",
+                            "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+                            1719868589,
+                            listContentTest.shuffled()[0],
+                            images.shuffled(),
+                            6,
+                            4, 4
+                        )
+                        ,com.example.social.sa.model.Posts(
+                            "",
+                            "",
+                            "@salman123",
+                            "salman Test",
+                            "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+                            1719868589,
+                            listContentTest.shuffled()[0],
+                            images.shuffled(),
+                            6,
+                            4, 4
+                        )
+                        ,com.example.social.sa.model.Posts(
+                            "",
+                            "",
+                            "@salman123",
+                            "salman Test",
+                            "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+                            1719868589,
+                            listContentTest.shuffled()[0],
+                            images.shuffled(),
+                            6,
+                            4, 4
+                        )
+                        ,com.example.social.sa.model.Posts(
+                            "",
+                            "",
+                            "@salman123",
+                            "salman Test",
+                            "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+                            1719868589,
+                            listContentTest.shuffled()[0],
+                            images.shuffled(),
+                            6,
+                            4, 4
+                        )
+                        ,com.example.social.sa.model.Posts(
+                            "",
+                            "",
+                            "@salman123",
+                            "salman Test",
+                            "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+                            1719868589,
+                            listContentTest.shuffled()[0],
+                            images.shuffled(),
+                            6,
+                            4, 4
+                        )
+                        ,com.example.social.sa.model.Posts(
+                            "",
+                            "",
+                            "@salman123",
+                            "salman Test",
+                            "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+                            1719868589,
+                            listContentTest.shuffled()[0],
+                            images.shuffled(),
+                            6,
+                            4, 4
+                        )
+                        ,com.example.social.sa.model.Posts(
+                            "",
+                            "",
+                            "@salman123",
+                            "salman Test",
+                            "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+                            1719868589,
+                            listContentTest.shuffled()[0],
+                            images.shuffled(),
+                            6,
+                            4, 4
+                        )
+                        ,com.example.social.sa.model.Posts(
+                            "",
+                            "",
+                            "@salman123",
+                            "salman Test",
+                            "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+                            1719868589,
+                            listContentTest.shuffled()[0],
+                            images.shuffled(),
+                            6,
+                            4, 4
+                        )
+                        ,com.example.social.sa.model.Posts(
+                            "",
+                            "",
+                            "@salman123",
+                            "salman Test",
+                            "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+                            1719868589,
+                            listContentTest.shuffled()[0],
+                            images.shuffled(),
+                            6,
+                            4, 4
+                        )
+                    )
                 )
             }
         }
