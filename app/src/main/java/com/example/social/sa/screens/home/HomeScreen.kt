@@ -70,11 +70,13 @@ import com.example.social.sa.Screens
 import com.example.social.sa.component.ExpandText
 import com.example.social.sa.component.RoundedFilterChip
 import com.example.social.sa.component.defaultRoundedFilterChipColors
+import com.example.social.sa.component.nestedScrollConnectionNoAction
 import com.example.social.sa.component.selectedRoundedFilterChipLike
 import com.example.social.sa.model.Posts
 import com.example.social.sa.ui.theme.SocialTheme
 import com.example.social.sa.utils.format
 import kotlinx.coroutines.launch
+import java.time.LocalDateTime
 import kotlin.random.Random
 
 fun NavGraphBuilder.homeDest(navController: NavController, paddingValues: PaddingValues) {
@@ -123,19 +125,7 @@ fun HomeScreen(
         HorizontalPager(
             state = pagerState, modifier = Modifier
                 .fillMaxSize(),
-            pageNestedScrollConnection = object : NestedScrollConnection {
-                override fun onPostScroll(
-                    consumed: Offset,
-                    available: Offset,
-                    source: NestedScrollSource
-                ): Offset {
-                    return available
-                }
-
-                override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
-                    return Offset.Zero
-                }
-            }
+            pageNestedScrollConnection = nestedScrollConnectionNoAction
         ) {
             when (tabs[it]) {
                 TabItem.HOME -> {
@@ -204,7 +194,7 @@ fun Post(
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = post.senderImage,
+                model = "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
                 contentDescription = "sender image",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
@@ -214,9 +204,9 @@ fun Post(
             )
             Spacer(modifier = Modifier.width(9.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = post.senderDisplayName, fontWeight = FontWeight.Medium)
+                Text(text = "salman", fontWeight = FontWeight.Medium)
                 Row {
-                    Text(text = post.senderId, fontWeight = FontWeight.Normal)
+                    Text(text = "@salman179", fontWeight = FontWeight.Normal)
                     Spacer(modifier = Modifier.width(4.dp))
                     Box(
                         modifier = Modifier
@@ -232,7 +222,7 @@ fun Post(
                             .padding(horizontal = 2.dp)
                     )
                     Text(
-                        text = post.timeStamp.format(),
+                        text = "2d",
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
@@ -264,13 +254,10 @@ fun Post(
             }
             Spacer(modifier = Modifier.height(12.dp))
             Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
-                post.imageContent.forEach {
+                post.images.forEach {
                     AsyncImage(
                         model = it,
                         contentDescription = "Image Content",
-                        placeholder = painterResource(
-                            id = R.drawable.text_image
-                        ),
                         modifier = Modifier
                             .size(230.dp)
                             .clip(RoundedCornerShape(6.dp)),
@@ -286,7 +273,7 @@ fun Post(
                 likeCount = post.likes,
                 commentCount = post.comments,
                 shareCount = post.share,
-                isLiked = Random.nextBoolean()
+                isLiked = post.likes != 0
             )
 
         }
@@ -360,12 +347,12 @@ private fun PostsPreview() {
                         "",
                         "@salman123",
                         "salman alamoudi",
+                        LocalDateTime.now(),
                         "",
-                        1719868589,
-                        "salme ad nsd".repeat(2000),
-                        listOf("", "", ""),
-                        6,
-                        4, 4
+                        listOf(),
+                        0,
+                        0,
+                        0
                     )
                 )
             ), paddingValues = PaddingValues()

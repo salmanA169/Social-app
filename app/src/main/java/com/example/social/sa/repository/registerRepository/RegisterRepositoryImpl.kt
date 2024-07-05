@@ -2,7 +2,7 @@ package com.example.social.sa.repository.registerRepository
 
 import android.content.Intent
 import android.content.IntentSender
-import com.example.social.sa.auth.AuthRequest
+import com.example.social.sa.core.requests.AuthRequest
 import com.example.social.sa.model.SignInResult
 import com.example.social.sa.model.UserInfo
 import javax.inject.Inject

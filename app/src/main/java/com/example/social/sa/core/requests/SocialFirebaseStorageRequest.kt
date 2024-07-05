@@ -1,21 +1,19 @@
-package com.example.social.sa.core
+package com.example.social.sa.core.requests
 
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
-import androidx.annotation.RequiresApi
 import com.example.social.sa.Constants
+import com.example.social.sa.core.FileManager
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class Storage @Inject constructor(
+class SocialFirebaseStorageRequest @Inject constructor(
     val storage: FirebaseStorage,
     private val fileManager: FileManager
 
 ) {
-
-
     suspend fun uploadImageProfileToStorage(
         pathUidUser: String,
         mediaUri: Uri
@@ -31,6 +29,8 @@ class Storage @Inject constructor(
             errorUpload(e.message!!)
         }
     }
+
+    // TODO: implement upload images here
 }
 
 

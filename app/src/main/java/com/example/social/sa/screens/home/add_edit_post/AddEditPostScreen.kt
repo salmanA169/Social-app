@@ -45,6 +45,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -116,7 +117,7 @@ fun AddEditPostScreen(
     state: AddEditPostState,
     onEvent: (AddEditPostEvent) -> Unit = {}
 ) {
-    var text by remember {
+    var text by rememberSaveable {
         mutableStateOf("")
     }
     val photoPickerLauncher = rememberLauncherForActivityResult(
@@ -141,7 +142,7 @@ fun AddEditPostScreen(
                         )
                     }
                 }, actions = {
-                    OutlinedButton(onClick = { /*TODO*/ }) {
+                    OutlinedButton(onClick = { onEvent(AddEditPostEvent.SendPost(text)) }) {
                         Text(text = stringResource(id = R.string.send))
                     }
                 }
@@ -290,8 +291,9 @@ fun PickedImage(
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(150.dp, 250.dp)
-                .clip(RoundedCornerShape(25f)).clickable {
-                    onImageClick(mMediaType,mediaType.uri)
+                .clip(RoundedCornerShape(25f))
+                .clickable {
+                    onImageClick(mMediaType, mediaType.uri)
                 }
         )
         FilledTonalIconButton(
@@ -374,9 +376,14 @@ fun PickImages(
         if (isVideo) {
             Text(
                 text = (mediaType as MediaTypeData.Video).duration.milliseconds.formatSecondAndMinute(),
-                modifier = Modifier.offset(6.dp, (-8).dp).background(MaterialTheme.colorScheme.surfaceContainerLow,
-                    RoundedCornerShape(16.dp)
-                ).padding(10.dp, 4.dp).align(Alignment.BottomStart),
+                modifier = Modifier
+                    .offset(6.dp, (-8).dp)
+                    .background(
+                        MaterialTheme.colorScheme.surfaceContainerLow,
+                        RoundedCornerShape(16.dp)
+                    )
+                    .padding(10.dp, 4.dp)
+                    .align(Alignment.BottomStart),
                 style = MaterialTheme.typography.labelSmall
             )
         }

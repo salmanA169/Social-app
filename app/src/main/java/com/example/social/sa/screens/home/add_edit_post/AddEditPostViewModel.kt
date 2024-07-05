@@ -1,11 +1,13 @@
 package com.example.social.sa.screens.home.add_edit_post
 
+import android.util.Log
 import androidx.core.net.toUri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.social.sa.core.FileManager
 import com.example.social.sa.core.MediaTypeData
 import com.example.social.sa.coroutine.DispatcherProvider
+import com.example.social.sa.repository.postRepository.PostRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -17,7 +19,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AddEditPostViewModel @Inject constructor(
     private val fileManager: FileManager,
-    private val dispatcherProvider: DispatcherProvider
+    private val dispatcherProvider: DispatcherProvider,
+    private val postRepository: PostRepository
 ):ViewModel() {
 
     private val _state = MutableStateFlow(AddEditPostState())
@@ -51,6 +54,7 @@ class AddEditPostViewModel @Inject constructor(
                 }
             }
 
+
             is AddEditPostEvent.DeleteImage -> {
                 val state = _state.value
                 if (state.pickedImage.contains(event.currentMedia)) {
@@ -81,6 +85,15 @@ class AddEditPostViewModel @Inject constructor(
                 }
             }
 
+            is AddEditPostEvent.SendPost -> {
+                viewModelScope.launch(dispatcherProvider.io) {
+                    postRepository.sendPost(event.text,_state.value.pickedImage.map { it.uri }).also {
+                        it.error?.let { errorMessage->
+                            Log.e("AddEditPostViewModel", "onEvent: called error $errorMessage")
+                        }
+                    }
+                }
+            }
         }
     }
     fun resetEffect(){
@@ -97,4 +110,5 @@ sealed class AddEditPostEvent{
     class DeleteImage(val currentMedia:MediaTypeData):AddEditPostEvent()
     class Navigate(val route:Any):AddEditPostEvent()
     data class PickedFromCamera(val mediaType: MediaTypeData):AddEditPostEvent()
+    data class SendPost(val text:String):AddEditPostEvent()
 }
