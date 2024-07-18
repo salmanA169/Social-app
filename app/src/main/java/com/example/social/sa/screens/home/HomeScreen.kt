@@ -35,6 +35,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -72,9 +73,11 @@ import com.example.social.sa.component.RoundedFilterChip
 import com.example.social.sa.component.defaultRoundedFilterChipColors
 import com.example.social.sa.component.nestedScrollConnectionNoAction
 import com.example.social.sa.component.selectedRoundedFilterChipLike
+import com.example.social.sa.model.Comment
 import com.example.social.sa.model.Posts
 import com.example.social.sa.ui.theme.SocialTheme
 import com.example.social.sa.utils.format
+import com.google.android.play.integrity.internal.w
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import kotlin.random.Random
@@ -88,6 +91,83 @@ fun NavGraphBuilder.homeDest(navController: NavController, paddingValues: Paddin
     }
 }
 
+@Composable
+fun Comments(modifier: Modifier = Modifier, comments: List<Comment>) {
+    LazyColumn {
+        items(comments){
+            CommentItem(
+                imageUri = it.imageUrl,
+                displayName = it.displayName,
+                time = "2d",
+                comment = it.comment,
+                likes = it.likes
+            )
+        }
+    }
+}
+
+@Composable
+fun CommentItem(
+    modifier: Modifier = Modifier,
+    imageUri: String,
+    displayName: String,
+    time: String,
+    comment: String,
+    likes: Int
+) {
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        AsyncImage(
+            model = "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+            contentDescription = "sender image",
+            contentScale = ContentScale.Crop,
+            modifier = Modifier
+                .size(40.dp)
+                .clip(CircleShape),
+            placeholder = painterResource(id = R.drawable.text_image)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Column(modifier = Modifier) {
+            Row {
+                Text(text = "salman", fontWeight = FontWeight.Medium)
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "2d",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Text(text = comment, fontWeight = FontWeight.Medium)
+            Text(
+                text = "Replay",
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.Light,
+                fontSize = 15.sp
+            )
+        }
+        Spacer(modifier = Modifier.weight(1f))
+        IconButton(onClick = { /*TODO*/ }, modifier = Modifier.align(Alignment.CenterVertically)) {
+            Row {
+                Icon(
+                    painter = painterResource(id = R.drawable.black_like_icon),
+                    contentDescription = "liked"
+                )
+                Text(text = likes.toString())
+            }
+        }
+    }
+}
+val COMMENTS = (0..50).map {
+    Comment(
+        "","",
+        "",
+        "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+        "salman","test","2d",15
+    )
+}
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
@@ -95,6 +175,17 @@ fun HomeScreen(
     paddingValues: PaddingValues
 ) {
 
+    var showComments by remember{
+        mutableStateOf(false)
+    }
+    val testComment = remember{
+        COMMENTS
+    }
+    if (showComments){
+        ModalBottomSheet(onDismissRequest = { showComments = false }) {
+            Comments(comments = testComment)
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -129,7 +220,9 @@ fun HomeScreen(
         ) {
             when (tabs[it]) {
                 TabItem.HOME -> {
-                    Posts(state.homePosts)
+                    Posts(state.homePosts, onCommentClick = {
+                        showComments = true
+                    })
                 }
 
                 TabItem.FOR_YOU -> {
@@ -166,13 +259,15 @@ fun FilterHomePosts(
 
 @Composable
 fun Posts(
-    posts: List<Posts>
+    posts: List<Posts>,
+    onCommentClick:()->Unit
 ) {
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(posts) {
             Post(
-                post = it
+                post = it,
+                onCommentClick = onCommentClick
             )
         }
     }
@@ -181,7 +276,8 @@ fun Posts(
 @Composable
 fun Post(
     modifier: Modifier = Modifier,
-    post: Posts
+    post: Posts,
+    onCommentClick: () -> Unit
 ) {
     var showMoreContent by rememberSaveable {
         mutableStateOf(false)
@@ -273,7 +369,8 @@ fun Post(
                 likeCount = post.likes,
                 commentCount = post.comments,
                 shareCount = post.share,
-                isLiked = post.likes != 0
+                isLiked = post.likes != 0,
+                onCommentClick = onCommentClick
             )
 
         }
@@ -287,7 +384,8 @@ fun PostInfo(
     likeCount: Int,
     commentCount: Int,
     shareCount: Int,
-    isLiked: Boolean
+    isLiked: Boolean,
+    onCommentClick: () -> Unit
 ) {
     Row(
         modifier = modifier,
@@ -299,13 +397,13 @@ fun PostInfo(
             onClick = { /*TODO*/ },
             label = likeCount.toString(),
             leadingIcon = painterResource(
-                id = if(!isLiked)R.drawable.black_like_icon else R.drawable.liked_icon
+                id = if (!isLiked) R.drawable.black_like_icon else R.drawable.liked_icon
             ),
             colors = if (!isLiked) defaultRoundedFilterChipColors() else selectedRoundedFilterChipLike()
         )
         RoundedFilterChip(
             selected = false,
-            onClick = { /*TODO*/ },
+            onClick = onCommentClick,
             label = likeCount.toString(),
             leadingIcon = painterResource(
                 id = R.drawable.comments_icon
@@ -339,23 +437,12 @@ fun PostInfo(
 @Composable
 private fun PostsPreview() {
     SocialTheme {
-        HomeScreen(
-            state = HomeScreenState(
-                homePosts = listOf(
-                    Posts(
-                        "",
-                        "",
-                        "@salman123",
-                        "salman alamoudi",
-                        LocalDateTime.now(),
-                        "",
-                        listOf(),
-                        0,
-                        0,
-                        0
-                    )
-                )
-            ), paddingValues = PaddingValues()
+        CommentItem(
+            imageUri = "",
+            displayName = "salman",
+            time = "aaaaa",
+            comment = "sss",
+            likes = 5
         )
     }
 }
