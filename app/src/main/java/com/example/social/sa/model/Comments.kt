@@ -13,14 +13,14 @@ data class Comment(
     val timestamp:String,
     val likes:Int
 ){
-    private val subCommentList = mutableListOf<Comment>()
+    private val replies = mutableListOf<Comment>()
 
-    fun addSubComment(comment: Comment){
-        subCommentList.add(comment)
+    fun addReply(comment: Comment){
+        replies.add(comment)
     }
-
-    fun hasSubComment():Boolean{
-        return subCommentList.isNotEmpty()
+    fun getReplies () = replies.toList()
+    fun hasReplies():Boolean{
+        return replies.isNotEmpty()
     }
 }
 
