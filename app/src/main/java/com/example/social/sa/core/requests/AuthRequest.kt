@@ -1,22 +1,18 @@
-package com.example.social.sa.auth
+package com.example.social.sa.core.requests
 
 import android.content.Context
 import android.content.Intent
 import android.content.IntentSender
 import android.util.Log
 import androidx.core.net.toUri
-import com.example.social.sa.core.Storage
-import com.example.social.sa.model.AuthProvider
 import com.example.social.sa.model.SignInResult
 import com.example.social.sa.model.UserInfo
 import com.example.social.sa.utils.isEmailValid
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.Identity
 import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.auth.GoogleAuthCredential
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.userProfileChangeRequest
-import com.google.firebase.storage.FirebaseStorage
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
 import java.lang.Exception
@@ -40,7 +36,7 @@ class AuthRequest @Inject constructor(
     private val oneTapClient = Identity.getSignInClient(context)
 
     @Inject
-    lateinit var firebaseStorage: Storage
+    lateinit var firebaseStorage: SocialFirebaseStorageRequest
 
     suspend fun signInEmail(email: String,password: String):SignInResult{
         return try {

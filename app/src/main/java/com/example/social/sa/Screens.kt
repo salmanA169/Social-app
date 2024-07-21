@@ -1,48 +1,65 @@
 package com.example.social.sa
 
 import androidx.annotation.DrawableRes
-import androidx.compose.material.icons.Icons
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NamedNavArgument
-import androidx.navigation.NavArgs
+import com.example.social.sa.core.MediaType
+import kotlinx.serialization.Serializable
 
-sealed class Screens (val route:String) {
+sealed class Screens(val route: String) {
 
 
-    abstract val args :List<NamedNavArgument>
+    abstract val args: List<NamedNavArgument>
 
-    object RegisterScreen:Screens("register-route"){
+    @Serializable
+    data class MediaPreviewScreen(val mediaType: String,val uri:String)
+
+    //    data object MediaPreviewScreen:Screens("media-preview-route"){
+//        override val args: List<NamedNavArgument>
+//            get() = listOf( navArgument(ConstantsArg.MEDIA_PREVIEW_SCREEN_MEDIA_TYPE_ARG){
+//                type = NavArgs
+//            })
+//
+//    }
+    @Serializable
+    data object RegisterScreen
+
+    @Serializable
+    object PostReviewScreen
+
+    sealed class BottomScreens(route: String, val icon: BottomIcon, val label: String = "") :
+        Screens(route)
+
+    object HomeScreen : BottomScreens("Home-route", drawableBottomIcon(R.drawable.dashboard_icon)) {
         override val args: List<NamedNavArgument>
             get() = emptyList()
     }
 
-    object PostReviewScreen:Screens("post-review-route"){
+    object SearchScreen :
+        BottomScreens("Search-route", drawableBottomIcon(R.drawable.search_icon)) {
         override val args: List<NamedNavArgument>
             get() = emptyList()
     }
 
-    sealed class BottomScreens(route: String,val icon :BottomIcon,val label:String = "") : Screens(route)
+    object NotificationScreen : BottomScreens(
+        "Notification-route",
+        drawableBottomIcon(R.drawable.clarity_notification_icon)
+    ) {
+        override val args: List<NamedNavArgument>
+            get() = emptyList()
+    }
 
-    object HomeScreen : BottomScreens("Home-route", drawableBottomIcon(R.drawable.dashboard_icon)){
+    object InboxScreen : BottomScreens("Inbox-route", drawableBottomIcon(R.drawable.inbox_icon)) {
         override val args: List<NamedNavArgument>
             get() = emptyList()
     }
-    object SearchScreen:BottomScreens("Search-route", drawableBottomIcon(R.drawable.search_icon)){
-        override val args: List<NamedNavArgument>
-            get() = emptyList()
-    }
-    object NotificationScreen:BottomScreens("Notification-route", drawableBottomIcon(R.drawable.clarity_notification_icon)){
-        override val args: List<NamedNavArgument>
-            get() = emptyList()
-    }
-    object InboxScreen:BottomScreens("Inbox-route", drawableBottomIcon(R.drawable.inbox_icon)){
-        override val args: List<NamedNavArgument>
-            get() = emptyList()
-    }
+
+    @Serializable
+    data object CameraPreviewScreen
 }
 
 val bottomScreens = listOf<Screens.BottomScreens>(
@@ -53,13 +70,13 @@ val bottomScreens = listOf<Screens.BottomScreens>(
 )
 
 
-sealed interface BottomIcon{
-    class VectorBottomIcon(val image:ImageVector):BottomIcon
-    class DrawableBottomIcon(@DrawableRes val drawable:Int):BottomIcon
+sealed interface BottomIcon {
+    class VectorBottomIcon(val image: ImageVector) : BottomIcon
+    class DrawableBottomIcon(@DrawableRes val drawable: Int) : BottomIcon
 
     @Composable
-    fun getIcon():Painter {
-        return when(this){
+    fun getIcon(): Painter {
+        return when (this) {
             is VectorBottomIcon -> rememberVectorPainter(image = image)
             is DrawableBottomIcon -> painterResource(id = drawable)
         }

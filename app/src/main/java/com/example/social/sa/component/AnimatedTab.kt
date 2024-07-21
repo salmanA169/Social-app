@@ -4,6 +4,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -13,7 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.example.social.sa.ui.theme.SurfaceColor
+
 
 
 @Composable
@@ -41,15 +42,15 @@ fun AnimatedTab(
         .onGloballyPositioned {
             tabWidth = it.size.width.dp
         }
-        .background(SurfaceColor.surfaces.surfaceContainerHigh, CircleShape)) {
+        .background(MaterialTheme.colorScheme.surfaceContainerHigh, CircleShape)) {
         MyTabIndicator()
     }
 }
 
 @Composable
 fun MyTabIndicator(
-    modifier:Modifier = Modifier,
+    modifier: Modifier = Modifier,
 
-) {
-    
+    ) {
+
 }

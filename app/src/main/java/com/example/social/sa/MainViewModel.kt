@@ -3,7 +3,7 @@ package com.example.social.sa
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.social.sa.auth.UserSession
+import com.example.social.sa.core.auth.UserSession
 import com.example.social.sa.coroutine.DispatcherProvider
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.delay

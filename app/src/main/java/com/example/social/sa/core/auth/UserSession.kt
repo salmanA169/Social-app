@@ -1,4 +1,4 @@
-package com.example.social.sa.auth
+package com.example.social.sa.core.auth
 
 import android.util.Log
 import com.google.firebase.auth.FirebaseAuth

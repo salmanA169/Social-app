@@ -1,22 +1,23 @@
-package com.example.social.sa.core
+package com.example.social.sa.core.requests
 
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
-import androidx.annotation.RequiresApi
 import com.example.social.sa.Constants
+import com.example.social.sa.core.FileManager
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 
-class Storage @Inject constructor(
-    val storage:FirebaseStorage,
+class SocialFirebaseStorageRequest @Inject constructor(
+    val storage: FirebaseStorage,
     private val fileManager: FileManager
 
 ) {
-
-
-    suspend fun uploadImageProfileToStorage(pathUidUser: String, mediaUri: Uri): UploadResult<String> {
+    suspend fun uploadImageProfileToStorage(
+        pathUidUser: String,
+        mediaUri: Uri
+    ): UploadResult<String> {
         return try {
             // change dispatcher to io
             val compressImage = fileManager.compressImage(mediaUri)
@@ -28,8 +29,9 @@ class Storage @Inject constructor(
             errorUpload(e.message!!)
         }
     }
-}
 
+    // TODO: implement upload images here
+}
 
 
 data class UploadResult<T>(
@@ -38,18 +40,19 @@ data class UploadResult<T>(
     val data: T?
 )
 
-fun Bitmap.CompressFormat.imageFormatExt(): String = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-    when (this) {
-        Bitmap.CompressFormat.JPEG -> "jpeg"
-        Bitmap.CompressFormat.PNG -> ".png"
-        Bitmap.CompressFormat.WEBP -> ".webp"
-        Bitmap.CompressFormat.WEBP_LOSSY -> ".webp"
-        Bitmap.CompressFormat.WEBP_LOSSLESS -> ".webp"
+fun Bitmap.CompressFormat.imageFormatExt(): String =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+        when (this) {
+            Bitmap.CompressFormat.JPEG -> "jpeg"
+            Bitmap.CompressFormat.PNG -> ".png"
+            Bitmap.CompressFormat.WEBP -> ".webp"
+            Bitmap.CompressFormat.WEBP_LOSSY -> ".webp"
+            Bitmap.CompressFormat.WEBP_LOSSLESS -> ".webp"
+        }
+    } else {
+        // improve it later
+        "jpeg"
     }
-} else {
-    // improve it later
-    "jpeg"
-}
 
 fun <T> errorUpload(errorMessage: String): UploadResult<T> = UploadResult(false, errorMessage, null)
 fun <T> successUpload(data: T?) = UploadResult(true, null, data)

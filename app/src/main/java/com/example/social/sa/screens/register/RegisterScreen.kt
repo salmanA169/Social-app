@@ -1,6 +1,5 @@
 package com.example.social.sa.screens.register
 
-import android.text.style.StrikethroughSpan
 import android.util.Log
 import android.widget.Toast
 import androidx.compose.animation.Crossfade
@@ -18,8 +17,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.InputChip
 import androidx.compose.material3.InputChipDefaults
@@ -33,7 +30,6 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Alignment.Companion.End
 import androidx.compose.ui.Modifier
@@ -50,38 +46,41 @@ import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.LocalViewModelStoreOwner
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
-import com.example.social.sa.MainViewModel
 import com.example.social.sa.R
 import com.example.social.sa.Screens
 import com.example.social.sa.component.RegisterButton
 import com.example.social.sa.component.RegisterIconButton
 import com.example.social.sa.component.RegisterTextField
 import com.example.social.sa.ui.theme.SocialTheme
-import com.example.social.sa.ui.theme.SurfaceColor
 import com.example.social.sa.utils.PreviewBothLightAndDark
 
 fun NavGraphBuilder.registerDest(navController: NavController) {
-    composable(Screens.RegisterScreen.route) {
+    composable<Screens.RegisterScreen>() {
         val registerViewModel = hiltViewModel<RegisterViewModel>()
         val context = LocalContext.current
         val state by registerViewModel.state.collectAsState()
         val effect by registerViewModel.effect.collectAsState()
-        LaunchedEffect(key1 = effect ){
-            when(effect){
+        LaunchedEffect(key1 = effect) {
+            when (effect) {
                 is RegisterEffect.Navigate -> {
-                    navController.navigate((effect as RegisterEffect.Navigate).route){
-                        popUpTo(Screens.RegisterScreen.route){
+                    navController.navigate((effect as RegisterEffect.Navigate).route) {
+                        popUpTo(Screens.RegisterScreen) {
                             inclusive = true
                         }
                     }
                 }
+
                 is RegisterEffect.ToastError -> {
-                    Toast.makeText(context, (effect as RegisterEffect.ToastError).message, Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        context,
+                        (effect as RegisterEffect.ToastError).message,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
+
                 null -> Unit
             }
         }
@@ -112,7 +111,7 @@ fun RegisterScreen(
             Modifier
                 .fillMaxWidth()
                 .background(
-                    SurfaceColor.surfaces.surfaceContainerHigh,
+                    MaterialTheme.colorScheme.surfaceContainerHigh,
                     RoundedCornerShape(30f)
                 )
                 .padding(horizontal = 6.dp), horizontalArrangement = Arrangement.SpaceEvenly
@@ -134,7 +133,7 @@ fun RegisterScreen(
                         )
                     },
                     border = null,
-                    colors = InputChipDefaults.inputChipColors(selectedContainerColor = SurfaceColor.surfaces.surfaceDim)
+                    colors = InputChipDefaults.inputChipColors(selectedContainerColor = MaterialTheme.colorScheme.surfaceDim)
                 )
             }
         }
@@ -177,7 +176,7 @@ fun SignupSection(email: InputData, onRegisterType: (RegisterEvent) -> Unit) {
         Spacer(modifier = Modifier.height(18.dp))
         RegisterButton(
             text = stringResource(id = R.string.sign_up),
-            onClick = { onRegisterType(RegisterEvent.SignUp)},
+            onClick = { onRegisterType(RegisterEvent.SignUp) },
             modifier = Modifier.fillMaxWidth()
         )
         Spacer(modifier = Modifier.height(18.dp))
@@ -200,8 +199,8 @@ fun SignInSection(
     var showPassword by rememberSaveable {
         mutableStateOf(false)
     }
-    val iconPassword =  rememberSaveable(showPassword) {
-        if (showPassword)  R.drawable.visibility_icon else  R.drawable.visibility_off_icon
+    val iconPassword = rememberSaveable(showPassword) {
+        if (showPassword) R.drawable.visibility_icon else R.drawable.visibility_off_icon
     }
     Column(
         modifier = Modifier.fillMaxSize(),
