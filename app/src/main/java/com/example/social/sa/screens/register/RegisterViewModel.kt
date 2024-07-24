@@ -1,5 +1,8 @@
 package com.example.social.sa.screens.register
 
+import android.content.Intent
+import android.content.IntentSender
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.social.sa.Screens
@@ -34,12 +37,32 @@ class RegisterViewModel @Inject constructor(
             }
 
             RegisterEvent.ForgetPassword -> TODO()
-            RegisterEvent.GoogleSign -> TODO()
+            RegisterEvent.GoogleSign -> {
+                viewModelScope.launch(dispatcherProvider.io) {
+                    val getGoogleSignIn = userRepository.getGoogleAuthResult()
+                    _state.update {
+                        it.copy(
+                            googleIntentSender = getGoogleSignIn
+                        )
+                    }
+                }
+            }
             is RegisterEvent.PasswordDataChange -> {
                 _state.update {
                     it.copy(
                         password = it.password.copy(content = registerEvent.password)
                     )
+                }
+            }
+            is RegisterEvent.GoogleSignInResult -> {
+                viewModelScope.launch(dispatcherProvider.io) {
+                    val getResult = userRepository.signInGoogle(registerEvent.intent)
+                    if (getResult.isSuccess) {
+                        _effect.update {
+                            RegisterEffect.Navigate(Screens.HomeScreen.route)
+                        }
+                    }
+
                 }
             }
 
@@ -143,4 +166,5 @@ sealed class RegisterEvent {
     object ForgetPassword : RegisterEvent()
     object SignUp : RegisterEvent()
     object GoogleSign : RegisterEvent()
+    data class GoogleSignInResult(val intent:Intent):RegisterEvent()
 }

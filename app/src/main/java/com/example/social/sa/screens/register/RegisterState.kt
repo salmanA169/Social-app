@@ -1,5 +1,6 @@
 package com.example.social.sa.screens.register
 
+import android.content.IntentSender
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.ui.res.painterResource
@@ -12,6 +13,7 @@ data class RegisterState(
     val email:InputData = InputData(),
     val password:InputData = InputData(),
     val registerType:RegisterType = RegisterType.SIGN_IN,
+    val googleIntentSender: IntentSender? = null
 )
 
 data class InputData(

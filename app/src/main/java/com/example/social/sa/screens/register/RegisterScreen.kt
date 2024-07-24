@@ -2,6 +2,9 @@ package com.example.social.sa.screens.register
 
 import android.util.Log
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -13,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
@@ -81,6 +85,7 @@ fun NavGraphBuilder.registerDest(navController: NavController) {
                     ).show()
                 }
 
+
                 null -> Unit
             }
         }
@@ -98,12 +103,28 @@ fun RegisterScreen(
         RegisterType.values().toList()
     }
 
+    val registerIntentSender =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartIntentSenderForResult()) {
+            onRegisterType(
+                RegisterEvent.GoogleSignInResult(
+                    it.data ?: return@rememberLauncherForActivityResult
+                )
+            )
+        }
 
+    LaunchedEffect(key1 = registerState.googleIntentSender ) {
+        if (registerState.googleIntentSender != null){
+            registerIntentSender.launch(
+                IntentSenderRequest.Builder(registerState.googleIntentSender).build()
+            )
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState())
+            .systemBarsPadding(),
     ) {
         Text(text = "App Name ", fontSize = 30.sp, modifier = Modifier.align(CenterHorizontally))
         Spacer(modifier = Modifier.height(16.dp))
@@ -262,7 +283,7 @@ fun SignInSection(
         Spacer(modifier = Modifier.height(18.dp))
 
         RegisterIconButton(icon = painterResource(id = R.drawable.google_icon)) {
-
+            onRegisterType(RegisterEvent.GoogleSign)
         }
 
 

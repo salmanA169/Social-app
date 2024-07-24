@@ -29,8 +29,7 @@ class MainViewModel @Inject constructor(
             userSession.isAuth.collectLatest { isAuth ->
                 _state.update {
                     it.copy(
-                        // TODO: for test now auto == null 
-                        shouldNavigateLoginScreen = false,
+                        shouldNavigateLoginScreen = isAuth == null,
                         imageProfile = isAuth?.image ?: ""
                     )
                 }

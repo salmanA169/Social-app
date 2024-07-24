@@ -31,6 +31,7 @@ sealed class Screens(val route: String) {
     @Serializable
     object PostReviewScreen
 
+
     sealed class BottomScreens(route: String, val icon: BottomIcon, val label: String = "") :
         Screens(route)
 

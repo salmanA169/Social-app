@@ -28,10 +28,11 @@ class AuthRequest @Inject constructor(
             BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
                 .setSupported(true)
                 .setServerClientId("621340764167-3va8b17kre8srg5vc9fhasj6jh3daltv.apps.googleusercontent.com")
-                .setFilterByAuthorizedAccounts(true)
+                .setFilterByAuthorizedAccounts(false)
                 .build()
         )
         .setAutoSelectEnabled(true)
+
         .build()
     private val oneTapClient = Identity.getSignInClient(context)
 
@@ -96,6 +97,7 @@ class AuthRequest @Inject constructor(
         return try {
             oneTapClient.beginSignIn(signInRequestGoogle).await().pendingIntent.intentSender
         }catch (e:Exception){
+            Log.e("AuthRequest GoogleSign in", "signInGoogle: called", e)
             null
         }
     }
