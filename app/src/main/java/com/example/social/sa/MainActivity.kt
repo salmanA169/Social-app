@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -165,7 +166,9 @@ fun MainScreen() {
             }
             composable(Screens.InboxScreen.route) {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    Text(text = "Inbox", Modifier.align(Alignment.Center))
+                    Text(text = "Inbox", Modifier.align(Alignment.Center).clickable {
+                        mainViewModel.signOut()
+                    })
                 }
             }
             registerDest(controller)

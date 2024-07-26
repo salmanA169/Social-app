@@ -32,7 +32,6 @@ class AuthRequest @Inject constructor(
                 .build()
         )
         .setAutoSelectEnabled(true)
-
         .build()
     private val oneTapClient = Identity.getSignInClient(context)
 
