@@ -7,6 +7,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionLayout
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -46,6 +49,7 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    @OptIn(ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -77,7 +81,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
 @Composable
 fun MainScreen() {
     val controller = rememberNavController()
@@ -102,79 +106,85 @@ fun MainScreen() {
     val shouldShow = remember(state.shouldNavigateLoginScreen, currentDestination?.route ?: "") {
         !state.shouldNavigateLoginScreen && screens.any { it.route == currentDestination?.route }
     }
-    Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
-        // TODO: improve it later
-        AnimatedVisibility(visible = shouldShow) {
-            NavigationBar {
-                screens.forEach { screen ->
-                    NavigationBarItem(
-                        selected = currentDestination?.hierarchy?.any {
-                            it.route == screen.route
-                        } == true,
-                        onClick = {
-                            controller.navigate(screen.route) {
-                                // Pop up to the start destination of the graph to
-                                // avoid building up a large stack of destinations
-                                // on the back stack as users select items
-                                popUpTo(controller.graph.findStartDestination().id) {
-                                    saveState = true
+    // TODO: fix it later
+    SharedTransitionLayout  {
+        Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
+            // TODO: improve it later
+            AnimatedVisibility(visible = shouldShow) {
+                NavigationBar {
+                    screens.forEach { screen ->
+                        NavigationBarItem(
+                            selected = currentDestination?.hierarchy?.any {
+                                it.route == screen.route
+                            } == true,
+                            onClick = {
+                                controller.navigate(screen.route) {
+                                    // Pop up to the start destination of the graph to
+                                    // avoid building up a large stack of destinations
+                                    // on the back stack as users select items
+                                    popUpTo(controller.graph.findStartDestination().id) {
+                                        saveState = true
+                                    }
+                                    // Avoid multiple copies of the same destination when
+                                    // reselecting the same item
+                                    launchSingleTop = true
+                                    // Restore state when reselecting a previously selected item
+                                    restoreState = true
                                 }
-                                // Avoid multiple copies of the same destination when
-                                // reselecting the same item
-                                launchSingleTop = true
-                                // Restore state when reselecting a previously selected item
-                                restoreState = true
-                            }
 
-                        },
-                        icon = {
-                            Icon(painter = screen.icon.getIcon(), contentDescription = "")
-                        })
+                            },
+                            icon = {
+                                Icon(painter = screen.icon.getIcon(), contentDescription = "")
+                            })
+                    }
                 }
             }
-        }
-    }, topBar = {
-        AnimatedVisibility(visible = shouldShow) {
-            HomeAppBar(image = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png")
-        }
-    }, floatingActionButton = {
-        AnimatedVisibility(visible = shouldShow) {
-            FloatingActionButton(onClick = {
-                controller.navigate(Screens.PostReviewScreen)
-            }) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
+        }, topBar = {
+            AnimatedVisibility(visible = shouldShow) {
+                HomeAppBar(image = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png")
             }
-        }
-    }) {
+        }, floatingActionButton = {
+            AnimatedVisibility(visible = shouldShow) {
+                FloatingActionButton(onClick = {
+                    controller.navigate(Screens.PostReviewScreen)
+                }) {
+                    Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
+                }
+            }
+        }) {
 
-        NavHost(
-            route = "ss",
-            navController = controller,
-            startDestination = Screens.HomeScreen.route
-        ) {
-            homeDest(controller, it)
-            addEditPostDest(controller)
-            composable(Screens.SearchScreen.route) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Text(text = "Search", Modifier.align(Alignment.Center))
+            NavHost(
+                navController = controller,
+                startDestination = Screens.HomeScreen.route
+            ) {
+                homeDest(controller, it,this@SharedTransitionLayout)
+                addEditPostDest(controller)
+                composable(Screens.SearchScreen.route) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        Text(text = "Search", Modifier.align(Alignment.Center))
+                    }
                 }
-            }
-            composable(Screens.NotificationScreen.route) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Text(text = "notificatoin", Modifier.align(Alignment.Center))
+                composable(Screens.NotificationScreen.route) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        Text(text = "notificatoin", Modifier.align(Alignment.Center))
+                    }
                 }
-            }
-            composable(Screens.InboxScreen.route) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Text(text = "Inbox", Modifier.align(Alignment.Center).clickable {
-                        mainViewModel.signOut()
-                    })
+                composable(Screens.InboxScreen.route) {
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        Text(text = "Inbox",
+                            Modifier
+                                .align(Alignment.Center)
+                                .clickable {
+                                    mainViewModel.signOut()
+                                })
+                    }
                 }
+                registerDest(controller)
+                cameraDest(controller)
+                mediaPreviewDest(navController = controller,this@SharedTransitionLayout)
             }
-            registerDest(controller)
-            cameraDest(controller)
-            mediaPreviewDest(navController = controller)
         }
+
     }
 }
 

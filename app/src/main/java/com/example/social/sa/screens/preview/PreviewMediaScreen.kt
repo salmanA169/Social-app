@@ -1,13 +1,14 @@
 package com.example.social.sa.screens.preview
 
+import androidx.compose.animation.AnimatedVisibilityScope
+import androidx.compose.animation.ExperimentalSharedTransitionApi
+import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.systemBarsPadding
-import androidx.compose.material3.FilledIconButton
 import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -16,7 +17,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.compose.ui.zIndex
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.ui.PlayerView
@@ -54,10 +54,21 @@ fun PlayVideo(
     }, modifier)
 }
 
-fun NavGraphBuilder.mediaPreviewDest(navController: NavController) {
+@OptIn(ExperimentalSharedTransitionApi::class)
+fun NavGraphBuilder.mediaPreviewDest(
+    navController: NavController,
+    sharedTransitionScope: SharedTransitionScope,
+) {
     composable<Screens.MediaPreviewScreen> {
         val mediaData = it.toRoute<Screens.MediaPreviewScreen>()
-        PreviewMediaScreen(mediaScreenData = MediaScreenData(mediaType = MediaType.valueOf(mediaData.mediaType), mediaUri = mediaData.uri)){
+        PreviewMediaScreen(
+            mediaScreenData = MediaScreenData(
+                mediaType = MediaType.valueOf(mediaData.mediaType),
+                mediaUri = mediaData.uri,
+            ),
+            sharedTransitionScope = sharedTransitionScope,
+            animatedVisibilityScope = this
+        ) {
             navController.popBackStack()
         }
     }
@@ -68,13 +79,21 @@ data class MediaScreenData(
     val mediaUri: String,
 )
 
+@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun PreviewMediaScreen(
     modifier: Modifier = Modifier,
     mediaScreenData: MediaScreenData,
-    onCloseClick:()->Unit
-) {
-    Box(modifier = modifier.fillMaxSize().systemBarsPadding()) {
+    sharedTransitionScope: SharedTransitionScope,
+    animatedVisibilityScope: AnimatedVisibilityScope,
+    onCloseClick: () -> Unit,
+
+    ) {
+    Box(
+        modifier = modifier
+            .fillMaxSize()
+            .systemBarsPadding()
+    ) {
         FilledTonalIconButton(onClick = { onCloseClick() }, modifier = Modifier.offset(16.dp)) {
             Icon(
                 painter = painterResource(id = R.drawable.close_icon),
@@ -83,8 +102,20 @@ fun PreviewMediaScreen(
         }
         when (mediaScreenData.mediaType) {
             MediaType.IMAGE -> {
-                AsyncImage(model = mediaScreenData.mediaUri, contentDescription = "Image",modifier = Modifier.fillMaxSize())
+                with(sharedTransitionScope){
+                    AsyncImage(
+                        model = mediaScreenData.mediaUri,
+                        contentDescription = "Image",
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .sharedElement(
+                                rememberSharedContentState(key = "image ${mediaScreenData.mediaUri}"),
+                                animatedVisibilityScope
+                            )
+                    )
+                }
             }
+
             MediaType.VIDEO -> {
                 PlayVideo(
                     modifier = Modifier.fillMaxSize(),
