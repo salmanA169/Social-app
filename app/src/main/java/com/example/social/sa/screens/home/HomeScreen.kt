@@ -1,11 +1,7 @@
 package com.example.social.sa.screens.home
 
 import android.content.res.Configuration
-import androidx.compose.animation.AnimatedVisibilityScope
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionScope
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -72,23 +68,16 @@ import com.example.social.sa.component.RoundedFilterChip
 import com.example.social.sa.component.defaultRoundedFilterChipColors
 import com.example.social.sa.component.nestedScrollConnectionNoAction
 import com.example.social.sa.component.selectedRoundedFilterChipLike
-import com.example.social.sa.core.MediaType
 import com.example.social.sa.model.Comment
 import com.example.social.sa.model.Posts
 import com.example.social.sa.ui.theme.SocialTheme
 import kotlinx.coroutines.launch
 
-@OptIn(ExperimentalSharedTransitionApi::class)
-fun NavGraphBuilder.homeDest(
-    navController: NavController, paddingValues: PaddingValues,
-    sharedTransitionScope: SharedTransitionScope,
-) {
+fun NavGraphBuilder.homeDest(navController: NavController, paddingValues: PaddingValues) {
     composable(Screens.HomeScreen.route) {
         val homeViewModel = hiltViewModel<HomeViewModel>()
         val state by homeViewModel.state.collectAsState()
-        HomeScreen(state = state, paddingValues, sharedTransitionScope, this,{
-            navController.navigate(Screens.MediaPreviewScreen(MediaType.IMAGE.toString(),it))
-        })
+        HomeScreen(state = state, paddingValues)
 
     }
 }
@@ -262,18 +251,18 @@ val COMMENTS = (0..50).map {
     }
 }
 
-@OptIn(
-    ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class,
-    ExperimentalSharedTransitionApi::class
-)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     state: HomeScreenState,
+    paddingValues: PaddingValues,
+    onUserClick: () -> Unit = {},
     paddingValues: PaddingValues,
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope,
     onPreviewImageNavigate: (String) -> Unit
 ) {
+
     var showComments by remember {
         mutableStateOf(false)
     }
@@ -321,6 +310,7 @@ fun HomeScreen(
                 TabItem.HOME -> {
                     Posts(state.homePosts, onCommentClick = {
                         showComments = true
+                    },onUserClick = onUserClick)
                     }, sharedTransitionScope = sharedTransitionScope, animatedVisibilityScope,onPreviewImageNavigate)
                 }
 
@@ -356,10 +346,11 @@ fun FilterHomePosts(
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun Posts(
     posts: List<Posts>,
+    onCommentClick: () -> Unit,
+    onUserClick: () -> Unit,
     onCommentClick: () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope,
@@ -371,6 +362,8 @@ fun Posts(
             Post(
                 post = it,
                 onCommentClick = onCommentClick,
+                onUserClick = onUserClick,
+                onCommentClick = onCommentClick,
                 sharedTransitionScope = sharedTransitionScope,
                 animatedVisibilityScope = animatedVisibilityScope,
                 onPreviewImageNavigate = onPreviewImageNavigate
@@ -379,7 +372,6 @@ fun Posts(
     }
 }
 
-@OptIn(ExperimentalSharedTransitionApi::class)
 @Composable
 fun Post(
     modifier: Modifier = Modifier,
@@ -387,12 +379,14 @@ fun Post(
     onCommentClick: () -> Unit,
     sharedTransitionScope: SharedTransitionScope,
     animatedVisibilityScope: AnimatedVisibilityScope,
-    onPreviewImageNavigate: (String) -> Unit
+    onPreviewImageNavigate: (String) -> Unit,
+    onCommentClick: () -> Unit,
+    onUserClick: () -> Unit
 ) {
     var showMoreContent by rememberSaveable {
         mutableStateOf(false)
     }
-    Column() {
+    Column(modifier = modifier) {
         Spacer(modifier = Modifier.height(8.dp))
         Row(
             modifier = Modifier
@@ -405,7 +399,9 @@ fun Post(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(40.dp)
-                    .clip(CircleShape),
+                    .clip(CircleShape).clickable {
+                                                 onUserClick()
+                    },
                 placeholder = painterResource(id = R.drawable.text_image)
             )
             Spacer(modifier = Modifier.width(9.dp))
@@ -460,7 +456,6 @@ fun Post(
             }
             Spacer(modifier = Modifier.height(12.dp))
             Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
-
                 post.images.forEach {
                     with(sharedTransitionScope) {
                         AsyncImage(
@@ -481,7 +476,6 @@ fun Post(
                     }
                     Spacer(modifier = Modifier.width(8.dp))
                 }
-
                 Spacer(modifier = Modifier.height(16.dp))
 
             }

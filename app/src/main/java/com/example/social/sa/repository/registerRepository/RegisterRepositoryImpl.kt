@@ -4,7 +4,7 @@ import android.content.Intent
 import android.content.IntentSender
 import com.example.social.sa.core.requests.AuthRequest
 import com.example.social.sa.model.SignInResult
-import com.example.social.sa.model.UserInfo
+import com.example.social.sa.model.UserInfoRegister
 import javax.inject.Inject
 class TestRegisterRepository @Inject constructor ():RegisterRepository{
     override suspend fun signOut(): Boolean {
@@ -12,7 +12,7 @@ class TestRegisterRepository @Inject constructor ():RegisterRepository{
     }
 
     override suspend fun signInEmailAndPassword(email: String, password: String): SignInResult {
-        return SignInResult(true,null , UserInfo(
+        return SignInResult(true,null , UserInfoRegister(
             email,"test","test","",false
         ))
     }
@@ -27,13 +27,13 @@ class TestRegisterRepository @Inject constructor ():RegisterRepository{
         userName: String,
         imageUri: String
     ): SignInResult {
-       return  SignInResult(true,null , UserInfo(
+       return  SignInResult(true,null , UserInfoRegister(
             email,"test","test","",false
         ))
     }
 
     override suspend fun signInGoogle(intent: Intent): SignInResult {
-        return  SignInResult(true,null , UserInfo(
+        return  SignInResult(true,null , UserInfoRegister(
             "test","test","test","",false
         ))
     }

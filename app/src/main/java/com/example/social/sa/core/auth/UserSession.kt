@@ -1,24 +1,20 @@
 package com.example.social.sa.core.auth
 
 import android.util.Log
-import androidx.lifecycle.LiveData
-import androidx.lifecycle.MutableLiveData
 import com.google.firebase.auth.FirebaseAuth
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import javax.inject.Inject
 
-class UserSession @Inject constructor(
+class UserSession@Inject constructor(
     private val auth: FirebaseAuth
-) : FirebaseAuth.AuthStateListener {
+):FirebaseAuth.AuthStateListener {
 
     private var userEvent :UserSessionEvent? = null
     override fun onAuthStateChanged(p0: FirebaseAuth) {
        userEvent?.onUserDataUpdate(p0.currentUser.run {
-           UserInfo(
+           UserSessionInfo(
                uid = this?.uid ?: "",
                image = this?.photoUrl.toString(),
                shouldNavigate = p0.currentUser == null
@@ -33,9 +29,9 @@ class UserSession @Inject constructor(
         auth.addAuthStateListener(this)
     }
 
-    fun getSignedInUser(): UserInfo? {
+    fun getSignedInUser(): UserSessionInfo? {
         return auth.currentUser?.run {
-            UserInfo(
+            UserSessionInfo(
                 uid, this.photoUrl.toString()
             )
         }
@@ -46,9 +42,9 @@ class UserSession @Inject constructor(
     }
 }
 interface UserSessionEvent {
-    fun onUserDataUpdate(userInfo: UserInfo)
+    fun onUserDataUpdate(userInfo: UserSessionInfo)
 }
-data class UserInfo(
+data class UserSessionInfo(
     val uid: String,
     val image: String,
     val shouldNavigate : Boolean = false

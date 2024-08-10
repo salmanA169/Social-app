@@ -7,10 +7,6 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.ExperimentalSharedTransitionApi
-import androidx.compose.animation.SharedTransitionLayout
-import androidx.compose.animation.SharedTransitionScope
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -49,7 +45,6 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
-    @OptIn(ExperimentalSharedTransitionApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -81,7 +76,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalSharedTransitionApi::class)
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
     val controller = rememberNavController()
@@ -132,59 +127,54 @@ fun MainScreen() {
                                     restoreState = true
                                 }
 
-                            },
-                            icon = {
-                                Icon(painter = screen.icon.getIcon(), contentDescription = "")
-                            })
-                    }
+                        },
+                        icon = {
+                            Icon(painter = screen.icon.getIcon(), contentDescription = "")
+                        })
                 }
-            }
-        }, topBar = {
-            AnimatedVisibility(visible = shouldShow) {
-                HomeAppBar(image = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png")
-            }
-        }, floatingActionButton = {
-            AnimatedVisibility(visible = shouldShow) {
-                FloatingActionButton(onClick = {
-                    controller.navigate(Screens.PostReviewScreen)
-                }) {
-                    Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
-                }
-            }
-        }) {
-
-            NavHost(
-                navController = controller,
-                startDestination = Screens.HomeScreen.route
-            ) {
-                homeDest(controller, it,this@SharedTransitionLayout)
-                addEditPostDest(controller)
-                composable(Screens.SearchScreen.route) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        Text(text = "Search", Modifier.align(Alignment.Center))
-                    }
-                }
-                composable(Screens.NotificationScreen.route) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        Text(text = "notificatoin", Modifier.align(Alignment.Center))
-                    }
-                }
-                composable(Screens.InboxScreen.route) {
-                    Box(modifier = Modifier.fillMaxSize()) {
-                        Text(text = "Inbox",
-                            Modifier
-                                .align(Alignment.Center)
-                                .clickable {
-                                    mainViewModel.signOut()
-                                })
-                    }
-                }
-                registerDest(controller)
-                cameraDest(controller)
-                mediaPreviewDest(navController = controller,this@SharedTransitionLayout)
             }
         }
+    }, topBar = {
+        AnimatedVisibility(visible = shouldShow) {
+            HomeAppBar(image = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png")
+        }
+    }, floatingActionButton = {
+        AnimatedVisibility(visible = shouldShow) {
+            FloatingActionButton(onClick = {
+                controller.navigate(Screens.PostReviewScreen)
+            }) {
+                Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
+            }
+        }
+    }) {
 
+        NavHost(
+            route = "ss",
+            navController = controller,
+            startDestination = Screens.HomeScreen.route
+        ) {
+            homeDest(controller, it)
+            addEditPostDest(controller)
+            composable(Screens.SearchScreen.route) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Text(text = "Search", Modifier.align(Alignment.Center))
+                }
+            }
+            composable(Screens.NotificationScreen.route) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Text(text = "notificatoin", Modifier.align(Alignment.Center))
+                }
+            }
+            composable(Screens.InboxScreen.route) {
+                Box(modifier = Modifier.fillMaxSize()) {
+                    Text(text = "Inbox", Modifier.align(Alignment.Center))
+                }
+            }
+            registerDest(controller)
+            cameraDest(controller)
+            mediaPreviewDest(navController = controller)
+            userInfoDest(navController = controller)
+        }
     }
 }
 
