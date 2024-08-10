@@ -57,7 +57,6 @@ fun PlayVideo(
 @OptIn(ExperimentalSharedTransitionApi::class)
 fun NavGraphBuilder.mediaPreviewDest(
     navController: NavController,
-    sharedTransitionScope: SharedTransitionScope,
 ) {
     composable<Screens.MediaPreviewScreen> {
         val mediaData = it.toRoute<Screens.MediaPreviewScreen>()
@@ -65,9 +64,7 @@ fun NavGraphBuilder.mediaPreviewDest(
             mediaScreenData = MediaScreenData(
                 mediaType = MediaType.valueOf(mediaData.mediaType),
                 mediaUri = mediaData.uri,
-            ),
-            sharedTransitionScope = sharedTransitionScope,
-            animatedVisibilityScope = this
+            )
         ) {
             navController.popBackStack()
         }
@@ -84,10 +81,7 @@ data class MediaScreenData(
 fun PreviewMediaScreen(
     modifier: Modifier = Modifier,
     mediaScreenData: MediaScreenData,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope,
     onCloseClick: () -> Unit,
-
     ) {
     Box(
         modifier = modifier
@@ -102,18 +96,12 @@ fun PreviewMediaScreen(
         }
         when (mediaScreenData.mediaType) {
             MediaType.IMAGE -> {
-                with(sharedTransitionScope){
                     AsyncImage(
                         model = mediaScreenData.mediaUri,
                         contentDescription = "Image",
                         modifier = Modifier
                             .fillMaxSize()
-                            .sharedElement(
-                                rememberSharedContentState(key = "image ${mediaScreenData.mediaUri}"),
-                                animatedVisibilityScope
-                            )
                     )
-                }
             }
 
             MediaType.VIDEO -> {

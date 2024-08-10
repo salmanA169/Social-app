@@ -77,7 +77,12 @@ fun NavGraphBuilder.homeDest(navController: NavController, paddingValues: Paddin
     composable(Screens.HomeScreen.route) {
         val homeViewModel = hiltViewModel<HomeViewModel>()
         val state by homeViewModel.state.collectAsState()
-        HomeScreen(state = state, paddingValues)
+        HomeScreen(state = state, paddingValues, onUserClick = {
+            navController.navigate(Screens.UserInfoRoute(""))
+
+        }, onPreviewImageNavigate = {
+            // TODO: add later navigate image to image preview
+        })
 
     }
 }
@@ -257,9 +262,6 @@ fun HomeScreen(
     state: HomeScreenState,
     paddingValues: PaddingValues,
     onUserClick: () -> Unit = {},
-    paddingValues: PaddingValues,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope,
     onPreviewImageNavigate: (String) -> Unit
 ) {
 
@@ -308,10 +310,9 @@ fun HomeScreen(
         ) {
             when (tabs[it]) {
                 TabItem.HOME -> {
-                    Posts(state.homePosts, onCommentClick = {
+                    PostsItems(state.homePosts, onCommentClick = {
                         showComments = true
-                    },onUserClick = onUserClick)
-                    }, sharedTransitionScope = sharedTransitionScope, animatedVisibilityScope,onPreviewImageNavigate)
+                    }, onUserClick = onUserClick, onPreviewImageNavigate = onPreviewImageNavigate)
                 }
 
                 TabItem.FOR_YOU -> {
@@ -347,13 +348,10 @@ fun FilterHomePosts(
 }
 
 @Composable
-fun Posts(
+fun PostsItems(
     posts: List<Posts>,
     onCommentClick: () -> Unit,
     onUserClick: () -> Unit,
-    onCommentClick: () -> Unit,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope,
     onPreviewImageNavigate: (String) -> Unit
 ) {
 
@@ -363,9 +361,6 @@ fun Posts(
                 post = it,
                 onCommentClick = onCommentClick,
                 onUserClick = onUserClick,
-                onCommentClick = onCommentClick,
-                sharedTransitionScope = sharedTransitionScope,
-                animatedVisibilityScope = animatedVisibilityScope,
                 onPreviewImageNavigate = onPreviewImageNavigate
             )
         }
@@ -376,9 +371,6 @@ fun Posts(
 fun Post(
     modifier: Modifier = Modifier,
     post: Posts,
-    onCommentClick: () -> Unit,
-    sharedTransitionScope: SharedTransitionScope,
-    animatedVisibilityScope: AnimatedVisibilityScope,
     onPreviewImageNavigate: (String) -> Unit,
     onCommentClick: () -> Unit,
     onUserClick: () -> Unit
@@ -399,8 +391,9 @@ fun Post(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(40.dp)
-                    .clip(CircleShape).clickable {
-                                                 onUserClick()
+                    .clip(CircleShape)
+                    .clickable {
+                        onUserClick()
                     },
                 placeholder = painterResource(id = R.drawable.text_image)
             )
@@ -457,23 +450,17 @@ fun Post(
             Spacer(modifier = Modifier.height(12.dp))
             Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
                 post.images.forEach {
-                    with(sharedTransitionScope) {
-                        AsyncImage(
-                            model = it,
-                            contentDescription = "Image Content",
-                            modifier = Modifier
-                                .size(230.dp)
-                                .clip(RoundedCornerShape(6.dp))
-                                .sharedElement(
-                                    rememberSharedContentState(key = "image $it"),
-                                    animatedVisibilityScope,
-                                )
-                                .clickable {
-                                    onPreviewImageNavigate(it)
-                                },
-                            contentScale = ContentScale.Crop
-                        )
-                    }
+                    AsyncImage(
+                        model = it,
+                        contentDescription = "Image Content",
+                        modifier = Modifier
+                            .size(230.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .clickable {
+                                onPreviewImageNavigate(it)
+                            },
+                        contentScale = ContentScale.Crop
+                    )
                     Spacer(modifier = Modifier.width(8.dp))
                 }
                 Spacer(modifier = Modifier.height(16.dp))

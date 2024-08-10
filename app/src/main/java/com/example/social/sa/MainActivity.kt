@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -36,10 +37,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.social.sa.component.HomeAppBar
 import com.example.social.sa.screens.camera.cameraDest
-import com.example.social.sa.screens.home.homeDest
 import com.example.social.sa.screens.home.add_edit_post.addEditPostDest
+import com.example.social.sa.screens.home.homeDest
 import com.example.social.sa.screens.preview.mediaPreviewDest
 import com.example.social.sa.screens.register.registerDest
+import com.example.social.sa.screens.userInfo.userInfoDest
 import com.example.social.sa.ui.theme.SocialTheme
 import dagger.hilt.android.AndroidEntryPoint
 
@@ -76,6 +78,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
@@ -102,30 +105,30 @@ fun MainScreen() {
         !state.shouldNavigateLoginScreen && screens.any { it.route == currentDestination?.route }
     }
     // TODO: fix it later
-    SharedTransitionLayout  {
-        Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
-            // TODO: improve it later
-            AnimatedVisibility(visible = shouldShow) {
-                NavigationBar {
-                    screens.forEach { screen ->
-                        NavigationBarItem(
-                            selected = currentDestination?.hierarchy?.any {
-                                it.route == screen.route
-                            } == true,
-                            onClick = {
-                                controller.navigate(screen.route) {
-                                    // Pop up to the start destination of the graph to
-                                    // avoid building up a large stack of destinations
-                                    // on the back stack as users select items
-                                    popUpTo(controller.graph.findStartDestination().id) {
-                                        saveState = true
-                                    }
-                                    // Avoid multiple copies of the same destination when
-                                    // reselecting the same item
-                                    launchSingleTop = true
-                                    // Restore state when reselecting a previously selected item
-                                    restoreState = true
+
+    Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
+        // TODO: improve it later
+        AnimatedVisibility(visible = shouldShow) {
+            NavigationBar {
+                screens.forEach { screen ->
+                    NavigationBarItem(
+                        selected = currentDestination?.hierarchy?.any {
+                            it.route == screen.route
+                        } == true,
+                        onClick = {
+                            controller.navigate(screen.route) {
+                                // Pop up to the start destination of the graph to
+                                // avoid building up a large stack of destinations
+                                // on the back stack as users select items
+                                popUpTo(controller.graph.findStartDestination().id) {
+                                    saveState = true
                                 }
+                                // Avoid multiple copies of the same destination when
+                                // reselecting the same item
+                                launchSingleTop = true
+                                // Restore state when reselecting a previously selected item
+                                restoreState = true
+                            }
 
                         },
                         icon = {
@@ -167,7 +170,9 @@ fun MainScreen() {
             }
             composable(Screens.InboxScreen.route) {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    Text(text = "Inbox", Modifier.align(Alignment.Center))
+                    Text(text = "Inbox", Modifier.align(Alignment.Center).clickable {
+                        mainViewModel.signOut()
+                    })
                 }
             }
             registerDest(controller)
