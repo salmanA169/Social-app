@@ -77,7 +77,9 @@ fun NavGraphBuilder.homeDest(navController: NavController, paddingValues: Paddin
     composable(Screens.HomeScreen.route) {
         val homeViewModel = hiltViewModel<HomeViewModel>()
         val state by homeViewModel.state.collectAsState()
-        HomeScreen(state = state, paddingValues)
+        HomeScreen(state = state, paddingValues, onUserClick = {
+            navController.navigate(Screens.UserInfoRoute(""))
+        })
 
     }
 }
@@ -255,7 +257,8 @@ val COMMENTS = (0..50).map {
 @Composable
 fun HomeScreen(
     state: HomeScreenState,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    onUserClick: () -> Unit = {},
 ) {
 
     var showComments by remember {
@@ -305,7 +308,7 @@ fun HomeScreen(
                 TabItem.HOME -> {
                     Posts(state.homePosts, onCommentClick = {
                         showComments = true
-                    })
+                    },onUserClick = onUserClick)
                 }
 
                 TabItem.FOR_YOU -> {
@@ -343,14 +346,16 @@ fun FilterHomePosts(
 @Composable
 fun Posts(
     posts: List<Posts>,
-    onCommentClick: () -> Unit
+    onCommentClick: () -> Unit,
+    onUserClick: () -> Unit
 ) {
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(posts) {
             Post(
                 post = it,
-                onCommentClick = onCommentClick
+                onCommentClick = onCommentClick,
+                onUserClick = onUserClick
             )
         }
     }
@@ -360,12 +365,13 @@ fun Posts(
 fun Post(
     modifier: Modifier = Modifier,
     post: Posts,
-    onCommentClick: () -> Unit
+    onCommentClick: () -> Unit,
+    onUserClick: () -> Unit
 ) {
     var showMoreContent by rememberSaveable {
         mutableStateOf(false)
     }
-    Column() {
+    Column(modifier = modifier) {
         Spacer(modifier = Modifier.height(8.dp))
         Row(
             modifier = Modifier
@@ -378,7 +384,9 @@ fun Post(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(40.dp)
-                    .clip(CircleShape),
+                    .clip(CircleShape).clickable {
+                                                 onUserClick()
+                    },
                 placeholder = painterResource(id = R.drawable.text_image)
             )
             Spacer(modifier = Modifier.width(9.dp))

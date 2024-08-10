@@ -16,6 +16,9 @@ sealed class Screens(val route: String) {
     abstract val args: List<NamedNavArgument>
 
     @Serializable
+    data class UserInfoRoute(val userUid:String)
+
+    @Serializable
     data class MediaPreviewScreen(val mediaType: String,val uri:String)
 
     //    data object MediaPreviewScreen:Screens("media-preview-route"){

@@ -1,6 +1,5 @@
 package com.example.social.sa.core.auth
 
-import android.util.Log
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,12 +10,12 @@ class UserSession@Inject constructor(
     private val auth: FirebaseAuth
 ):FirebaseAuth.AuthStateListener {
 
-    private val _isAuth = MutableStateFlow<UserInfo?>(null)
+    private val _isAuth = MutableStateFlow<UserSessionInfo?>(null)
     val isAuth = _isAuth.asStateFlow()
     override fun onAuthStateChanged(p0: FirebaseAuth) {
         _isAuth.update {
             p0.currentUser?.run {
-                UserInfo(
+                UserSessionInfo(
                     uid,this.photoUrl.toString()
                 )
             }
@@ -32,7 +31,7 @@ class UserSession@Inject constructor(
     }
 }
 
-data class UserInfo(
+data class UserSessionInfo(
     val uid:String,
     val image:String
 )

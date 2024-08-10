@@ -6,7 +6,7 @@ import android.content.IntentSender
 import android.util.Log
 import androidx.core.net.toUri
 import com.example.social.sa.model.SignInResult
-import com.example.social.sa.model.UserInfo
+import com.example.social.sa.model.UserInfoRegister
 import com.example.social.sa.utils.isEmailValid
 import com.google.android.gms.auth.api.identity.BeginSignInRequest
 import com.google.android.gms.auth.api.identity.Identity
@@ -42,7 +42,7 @@ class AuthRequest @Inject constructor(
         return try {
             val signInResult = authFirebaseAuth.signInWithEmailAndPassword(email,password).await().user!!
             SignInResult(
-                true,null,UserInfo(
+                true,null,UserInfoRegister(
                     signInResult.email!!,
                     signInResult.displayName?:"",
                     signInResult.uid,
@@ -73,7 +73,7 @@ class AuthRequest @Inject constructor(
                 }
                 userInfo.updateProfile(updatedProfile).await()
                 SignInResult(
-                    true,null, UserInfo(
+                    true,null, UserInfoRegister(
                         userInfo.email!!,
                         userInfo.displayName!!,
                         userInfo.uid,
@@ -113,7 +113,7 @@ class AuthRequest @Inject constructor(
             val authResult = authFirebaseAuth.signInWithCredential(googleCredential).await()
             val user = authResult.user!!
             SignInResult(
-                true,null ,UserInfo(
+                true,null ,UserInfoRegister(
                     user.email!!,
                     user.displayName!!,
                     user.uid,
