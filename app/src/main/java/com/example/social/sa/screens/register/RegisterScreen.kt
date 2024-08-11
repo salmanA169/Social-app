@@ -85,8 +85,16 @@ fun NavGraphBuilder.registerDest(navController: NavController) {
                     ).show()
                 }
 
-
                 null -> Unit
+                is RegisterEffect.NavigateToInfoRegister -> {
+                    navController.navigate(
+                        Screens.InfoRegisterRoute(
+                            (effect as RegisterEffect.NavigateToInfoRegister).email,
+                            null,
+                            null
+                        )
+                    )
+                }
             }
         }
         RegisterScreen(state, registerViewModel::onEvent)
@@ -112,8 +120,8 @@ fun RegisterScreen(
             )
         }
 
-    LaunchedEffect(key1 = registerState.googleIntentSender ) {
-        if (registerState.googleIntentSender != null){
+    LaunchedEffect(key1 = registerState.googleIntentSender) {
+        if (registerState.googleIntentSender != null) {
             registerIntentSender.launch(
                 IntentSenderRequest.Builder(registerState.googleIntentSender).build()
             )

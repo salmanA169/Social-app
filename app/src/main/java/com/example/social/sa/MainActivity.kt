@@ -40,6 +40,7 @@ import com.example.social.sa.screens.camera.cameraDest
 import com.example.social.sa.screens.home.add_edit_post.addEditPostDest
 import com.example.social.sa.screens.home.homeDest
 import com.example.social.sa.screens.preview.mediaPreviewDest
+import com.example.social.sa.screens.register.info_register.infoRegisterDest
 import com.example.social.sa.screens.register.registerDest
 import com.example.social.sa.screens.userInfo.userInfoDest
 import com.example.social.sa.ui.theme.SocialTheme
@@ -179,6 +180,7 @@ fun MainScreen() {
             cameraDest(controller)
             mediaPreviewDest(navController = controller)
             userInfoDest(navController = controller)
+            infoRegisterDest(navController = controller)
         }
     }
 }

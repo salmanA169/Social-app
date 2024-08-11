@@ -117,7 +117,12 @@ class RegisterViewModel @Inject constructor(
                 }
             }
 
-            RegisterEvent.SignUp -> TODO()
+            RegisterEvent.SignUp ->{
+                val getEmail = _state.value.email.content
+                _effect.update {
+                    RegisterEffect.NavigateToInfoRegister(getEmail,null,null)
+                }
+            }
         }
     }
 
@@ -156,6 +161,7 @@ class RegisterViewModel @Inject constructor(
 sealed class RegisterEffect {
     class Navigate(val route: String) : RegisterEffect()
     class ToastError(val message: String) : RegisterEffect()
+    class NavigateToInfoRegister(val email: String,val userName:String?,val imageUrl:String?) : RegisterEffect()
 }
 
 sealed class RegisterEvent {

@@ -372,6 +372,7 @@ fun Post(
     modifier: Modifier = Modifier,
     post: Posts,
     onPreviewImageNavigate: (String) -> Unit,
+    // TODO fix comment for bottom sheet inside post sections only
     onCommentClick: () -> Unit,
     onUserClick: () -> Unit
 ) {
