@@ -1,6 +1,7 @@
 package com.example.social.sa.screens.register
 
 import android.util.Log
+import android.webkit.URLUtil
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.IntentSenderRequest
@@ -61,12 +62,14 @@ import com.example.social.sa.component.RegisterTextField
 import com.example.social.sa.ui.theme.SocialTheme
 import com.example.social.sa.utils.PreviewBothLightAndDark
 
+// TODO: there is some issue when navigate to infoScreen then back to register screen it duplicated screen register
 fun NavGraphBuilder.registerDest(navController: NavController) {
     composable<Screens.RegisterScreen>() {
         val registerViewModel = hiltViewModel<RegisterViewModel>()
         val context = LocalContext.current
         val state by registerViewModel.state.collectAsState()
         val effect by registerViewModel.effect.collectAsState()
+
         LaunchedEffect(key1 = effect) {
             when (effect) {
                 is RegisterEffect.Navigate -> {
@@ -76,7 +79,6 @@ fun NavGraphBuilder.registerDest(navController: NavController) {
                         }
                     }
                 }
-
                 is RegisterEffect.ToastError -> {
                     Toast.makeText(
                         context,
@@ -90,12 +92,13 @@ fun NavGraphBuilder.registerDest(navController: NavController) {
                     navController.navigate(
                         Screens.InfoRegisterRoute(
                             (effect as RegisterEffect.NavigateToInfoRegister).email,
-                            null,
-                            null
+                            (effect as RegisterEffect.NavigateToInfoRegister).userName,
+                            (effect as RegisterEffect.NavigateToInfoRegister).imageUrl
                         )
                     )
                 }
             }
+            registerViewModel.resetEffect()
         }
         RegisterScreen(state, registerViewModel::onEvent)
     }
@@ -200,7 +203,8 @@ fun SignupSection(email: InputData, onRegisterType: (RegisterEvent) -> Unit) {
             value = email.content,
             onValueChange = {
                 onRegisterType(RegisterEvent.EmailDataChange(it))
-            }
+            },
+            label = stringResource(id = R.string.email)
         )
         Spacer(modifier = Modifier.height(18.dp))
         RegisterButton(
@@ -244,7 +248,8 @@ fun SignInSection(
             value = email.content,
             onValueChange = {
                 onRegisterType(RegisterEvent.EmailDataChange(it))
-            }
+            },
+            label = stringResource(id = R.string.email)
         )
         Spacer(modifier = Modifier.height(16.dp))
         RegisterTextField(
@@ -260,7 +265,8 @@ fun SignInSection(
             trailingIcon = painterResource(id = iconPassword),
             onTrailingIconClick = {
                 showPassword = !showPassword
-            }
+            },
+            label = stringResource(id = R.string.password)
         )
         Spacer(modifier = Modifier.height(16.dp))
         ClickableText(modifier = Modifier.align(End),

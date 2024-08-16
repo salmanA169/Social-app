@@ -16,11 +16,21 @@ data class RegisterState(
     val googleIntentSender: IntentSender? = null
 )
 
+@Immutable
 data class InputData(
     val content:String = "",
-    val isError :Boolean = false,
-    val errorText:String = ""
-)
+    var isError :Boolean = false,
+    var errorText:String = ""
+){
+    fun setError(message:String){
+        isError = true
+        errorText = message
+    }
+    fun clearError(){
+        isError = false
+        errorText = ""
+    }
+}
 enum class RegisterType{
     SIGN_IN,SIGN_UP;
 

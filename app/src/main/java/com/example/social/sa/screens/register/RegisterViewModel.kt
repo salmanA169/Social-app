@@ -47,6 +47,7 @@ class RegisterViewModel @Inject constructor(
                     }
                 }
             }
+
             is RegisterEvent.PasswordDataChange -> {
                 _state.update {
                     it.copy(
@@ -54,12 +55,23 @@ class RegisterViewModel @Inject constructor(
                     )
                 }
             }
+
             is RegisterEvent.GoogleSignInResult -> {
                 viewModelScope.launch(dispatcherProvider.io) {
                     val getResult = userRepository.signInGoogle(registerEvent.intent)
                     if (getResult.isSuccess) {
-                        _effect.update {
-                            RegisterEffect.Navigate(Screens.HomeScreen.route)
+                        if (getResult.userInfo!!.isNewUser) {
+                            _effect.update {
+                                RegisterEffect.NavigateToInfoRegister(
+                                    getResult.userInfo!!.email,
+                                    getResult.userInfo!!.name,
+                                    getResult.userInfo!!.photo
+                                )
+                            }
+                        } else {
+                            _effect.update {
+                                RegisterEffect.Navigate(Screens.HomeScreen.route)
+                            }
                         }
                     }
 
@@ -117,14 +129,15 @@ class RegisterViewModel @Inject constructor(
                 }
             }
 
-            RegisterEvent.SignUp ->{
+            RegisterEvent.SignUp -> {
                 val getEmail = _state.value.email.content
                 _effect.update {
-                    RegisterEffect.NavigateToInfoRegister(getEmail,null,null)
+                    RegisterEffect.NavigateToInfoRegister(getEmail, null, null)
                 }
             }
         }
     }
+
 
     private fun resetContent() {
         _state.update {
@@ -161,7 +174,8 @@ class RegisterViewModel @Inject constructor(
 sealed class RegisterEffect {
     class Navigate(val route: String) : RegisterEffect()
     class ToastError(val message: String) : RegisterEffect()
-    class NavigateToInfoRegister(val email: String,val userName:String?,val imageUrl:String?) : RegisterEffect()
+    class NavigateToInfoRegister(val email: String, val userName: String?, val imageUrl: String?) :
+        RegisterEffect()
 }
 
 sealed class RegisterEvent {
@@ -172,5 +186,5 @@ sealed class RegisterEvent {
     object ForgetPassword : RegisterEvent()
     object SignUp : RegisterEvent()
     object GoogleSign : RegisterEvent()
-    data class GoogleSignInResult(val intent:Intent):RegisterEvent()
+    data class GoogleSignInResult(val intent: Intent) : RegisterEvent()
 }

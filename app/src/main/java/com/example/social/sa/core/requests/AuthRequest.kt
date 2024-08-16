@@ -106,11 +106,10 @@ class AuthRequest @Inject constructor(
         authFirebaseAuth.signOut()
     }
     suspend fun signInGoogleResult(intent: Intent):SignInResult{
-        val credential = oneTapClient.getSignInCredentialFromIntent(intent)
-        val googleIdToken = credential.googleIdToken
-        val googleCredential = GoogleAuthProvider.getCredential(googleIdToken,null)
-
         return try {
+            val credential = oneTapClient.getSignInCredentialFromIntent(intent)
+            val googleIdToken = credential.googleIdToken
+            val googleCredential = GoogleAuthProvider.getCredential(googleIdToken,null)
             val authResult = authFirebaseAuth.signInWithCredential(googleCredential).await()
             val user = authResult.user!!
             SignInResult(
@@ -123,9 +122,13 @@ class AuthRequest @Inject constructor(
                 )
             )
         }catch (e:Exception){
+            authFirebaseAuth.currentUser?.let {
+                it.delete()
+            }
             SignInResult(
                 false,e.message,null
             )
         }
+
     }
 }
