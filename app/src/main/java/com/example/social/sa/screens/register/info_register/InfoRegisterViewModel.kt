@@ -1,14 +1,12 @@
 package com.example.social.sa.screens.register.info_register
 
-import android.icu.text.IDNA.Info
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.social.sa.coroutine.DispatcherProvider
-import com.example.social.sa.model.UserInfo
 import com.example.social.sa.repository.registerRepository.RegisterRepository
 import com.example.social.sa.screens.register.InputData
-import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -31,7 +29,12 @@ class InfoRegisterViewModel @Inject constructor(
     private val _effect = MutableStateFlow<InfoRegisterEffect?>(null)
     val effect = _effect.asStateFlow()
 
+    private var isGoogleProvider = false
     private val query = MutableStateFlow<String>("")
+
+    fun setIsGoogleProvider(isGoogle: Boolean) {
+        isGoogleProvider = isGoogle
+    }
 
     init {
         viewModelScope.launch(dispatcherProvider.io) {
@@ -83,24 +86,58 @@ class InfoRegisterViewModel @Inject constructor(
                 _state.update {
                     it.copy(isLoading = true)
                 }
+
                 viewModelScope.launch(dispatcherProvider.io) {
                     val value = _state.value
+                    // TODO: fix it later when user name error or empty ans hide progress
+//                    if (value.userName.isError){
+//                        return@launch
+//                    }
                     val inputsData = listOf(value.email, value.userName, value.displayName)
                     if (inputsData.all {
-                        it.content.isNotBlank()
-                        }){
-                        registerRepository.signUpUser(
-                            value.email.content,
-                            value.userName.content,
-                            value.imageUri?:"",
-                            value.displayName.content
-                        )
+                            it.content.isNotBlank()
+                        }) {
+                        if (isGoogleProvider) {
+                            registerRepository.updateUserProfile(value.imageUri?:"")
+                            registerRepository.saveUser(
+                                value.email.content,
+                                value.userName.content,
+                                value.imageUri ?: "",
+                                value.displayName.content
+                            )
+                        } else {
+                            val signUpUserResult = registerRepository.signUpEmailAndPassword(
+                                value.email.content,
+                                value.password.content,
+                                value.displayName.content,
+                                value.imageUri ?: ""
+                            )
+                            if (!signUpUserResult.isSuccess){
+                                if (signUpUserResult.error!= null && signUpUserResult.error is FirebaseAuthUserCollisionException){
+                                    _effect.update {
+                                        InfoRegisterEffect.ToastMessage(signUpUserResult.error.message?:"UnKnown Error")
+                                    }
+                                }
+                                _state.update {
+                                    it.copy(
+                                        isLoading = false
+                                    )
+                                }
+                                return@launch
+                            }else{
+                               signUpUserResult.userInfo?.let {
+                                    registerRepository.saveUser(
+                                        it.email,value.userName.content,it.photo,value.displayName.content
+                                    )
+                                }
+                            }
+                        }
                         _effect.update {
                             InfoRegisterEffect.NavigateHome
                         }
-                    }else{
+                    } else {
                         inputsData.forEach {
-                            if (it.content.isEmpty()){
+                            if (it.content.isEmpty()) {
                                 it.setError("Must not be empty")
                             }
                         }
@@ -139,10 +176,18 @@ class InfoRegisterViewModel @Inject constructor(
                     )
                 }
             }
+
+            is InfoRegisterEvent.PasswordChanged -> {
+                _state.update {
+                    it.copy(
+                        password = InputData(event.password)
+                    )
+                }
+            }
         }
     }
 
-    fun resetEffect(){
+    fun resetEffect() {
         _effect.update {
             null
         }
@@ -151,6 +196,7 @@ class InfoRegisterViewModel @Inject constructor(
 
 sealed class InfoRegisterEffect {
     data object NavigateHome : InfoRegisterEffect()
+    data class ToastMessage(val message:String):InfoRegisterEffect()
 }
 
 sealed class InfoRegisterEvent {
@@ -161,4 +207,6 @@ sealed class InfoRegisterEvent {
     data class ImageChanged(val uri: String) : InfoRegisterEvent()
     data class ArgChanges(val email: String, val name: String?, val image: String?) :
         InfoRegisterEvent()
+
+    data class PasswordChanged(val password: String) : InfoRegisterEvent()
 }

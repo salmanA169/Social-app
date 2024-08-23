@@ -22,7 +22,7 @@ sealed class Screens(val route: String) {
     data class MediaPreviewScreen(val mediaType: String,val uri:String)
 
     @Serializable
-    data class InfoRegisterRoute(val email:String,val userName:String?,val imageUrl:String?)
+    data class InfoRegisterRoute(val email:String,val userName:String?,val imageUrl:String?,val isGoogleProvider :Boolean )
 
 
     //    data object MediaPreviewScreen:Screens("media-preview-route"){

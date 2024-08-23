@@ -7,7 +7,7 @@ data class SignIn(
 )
 data class SignInResult(
     val isSuccess:Boolean,
-    val error:String?,
+    val error:Throwable?,
     val userInfo:UserInfoRegister? = null
 )
 

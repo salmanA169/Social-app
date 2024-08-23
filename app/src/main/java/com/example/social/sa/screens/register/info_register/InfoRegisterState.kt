@@ -8,6 +8,7 @@ data class InfoRegisterState(
     val email:InputData = InputData(),
     val displayName:InputData = InputData(),
     val userName:InputData = InputData(),
+    val password:InputData = InputData(),
     val imageUri:String? = null ,
     val isLoading:Boolean = false,
 )

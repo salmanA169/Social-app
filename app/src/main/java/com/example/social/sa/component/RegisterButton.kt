@@ -16,9 +16,10 @@ import com.example.social.sa.utils.PreviewBothLightAndDark
 fun RegisterButton(
     text:String,
     onClick:() -> Unit,
-    modifier :Modifier = Modifier
+    modifier :Modifier = Modifier,
+    enabled:Boolean = true
 ) {
-    Button(onClick = onClick,modifier = modifier, shape = RoundedCornerShape(20f)) {
+    Button(onClick = onClick,modifier = modifier, shape = RoundedCornerShape(20f), enabled = enabled) {
         Text(text = text, fontSize = 19.sp,modifier = Modifier.padding(vertical = 6.dp))
     }
 }

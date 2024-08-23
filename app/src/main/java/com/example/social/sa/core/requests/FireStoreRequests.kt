@@ -47,12 +47,7 @@ class FireStoreRequests @Inject constructor(
 
     fun getPostsFlow() = socialFireStore.getPosts()
     suspend fun checkUsernameAvailable(username: String): FireStoreResult<Boolean> {
-        val getUsers = socialFireStore.getUsersName().also {
-            Log.d(
-                "FireStoreRequest",
-                "checkUsernameAvailable: called users firestore $it"
-            )
-        }
+        val getUsers = socialFireStore.getUsersName()
         return if (getUsers.contains(username)) {
             FireStoreResult(false, "Username already exists", null)
         } else {

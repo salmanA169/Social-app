@@ -93,7 +93,8 @@ fun NavGraphBuilder.registerDest(navController: NavController) {
                         Screens.InfoRegisterRoute(
                             (effect as RegisterEffect.NavigateToInfoRegister).email,
                             (effect as RegisterEffect.NavigateToInfoRegister).userName,
-                            (effect as RegisterEffect.NavigateToInfoRegister).imageUrl
+                            (effect as RegisterEffect.NavigateToInfoRegister).imageUrl,
+                            (effect as RegisterEffect.NavigateToInfoRegister).isGoogle
                         )
                     )
                 }

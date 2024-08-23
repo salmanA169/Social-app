@@ -1,6 +1,7 @@
 package com.example.social.sa.screens.register.info_register
 
 import android.content.res.Configuration
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -24,6 +25,7 @@ import androidx.compose.ui.Alignment.Companion.CenterHorizontally
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
@@ -47,6 +49,7 @@ fun NavGraphBuilder.infoRegisterDest(navController: NavController) {
         val getArg = it.toRoute<Screens.InfoRegisterRoute>()
         val state by infoViewModel.state.collectAsStateWithLifecycle()
         val effect by infoViewModel.effect.collectAsStateWithLifecycle()
+        val context = LocalContext.current
         LaunchedEffect(key1 = effect) {
             when (effect) {
                 InfoRegisterEffect.NavigateHome -> {
@@ -60,6 +63,10 @@ fun NavGraphBuilder.infoRegisterDest(navController: NavController) {
                 null -> {
 
                 }
+
+                is InfoRegisterEffect.ToastMessage -> {
+                    Toast.makeText(context, (effect as InfoRegisterEffect.ToastMessage).message, Toast.LENGTH_SHORT).show()
+                }
             }
             infoViewModel.resetEffect()
         }
@@ -71,8 +78,13 @@ fun NavGraphBuilder.infoRegisterDest(navController: NavController) {
                     getArg.imageUrl
                 )
             )
+            infoViewModel.setIsGoogleProvider(getArg.isGoogleProvider)
         }
-        InfoRegisterScreen(infoRegisterState = state, onInfoRegisterEvent = infoViewModel::onEvent)
+        InfoRegisterScreen(
+            infoRegisterState = state,
+            onInfoRegisterEvent = infoViewModel::onEvent,
+            showPassword = !getArg.isGoogleProvider
+        )
     }
 }
 
@@ -80,7 +92,8 @@ fun NavGraphBuilder.infoRegisterDest(navController: NavController) {
 fun InfoRegisterScreen(
     modifier: Modifier = Modifier,
     infoRegisterState: InfoRegisterState,
-    onInfoRegisterEvent: (InfoRegisterEvent) -> Unit = {}
+    onInfoRegisterEvent: (InfoRegisterEvent) -> Unit = {},
+    showPassword: Boolean
 ) {
 
     val pickImage =
@@ -147,9 +160,21 @@ fun InfoRegisterScreen(
             onInfoRegisterEvent(InfoRegisterEvent.EmailChanged(it))
         }
         Spacer(modifier = Modifier.height(12.dp))
+        if (showPassword) {
+            RegisterTextField(
+                hint = stringResource(id = R.string.password_hint),
+                isError = infoRegisterState.password.isError,
+                supportText = infoRegisterState.password.errorText,
+                value = infoRegisterState.password.content,
+                label = stringResource(id = R.string.password),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                onInfoRegisterEvent(InfoRegisterEvent.PasswordChanged(it))
+            }
+        }
         RegisterButton(text = "Submit", onClick = {
             onInfoRegisterEvent(InfoRegisterEvent.Submit)
-        }, modifier = Modifier.fillMaxWidth())
+        }, modifier = Modifier.fillMaxWidth(), enabled = !infoRegisterState.isLoading)
     }
 }
 
@@ -164,7 +189,7 @@ fun InfoRegisterScreen(
 @Composable
 private fun InfoScreenPreview() {
     SocialTheme {
-        InfoRegisterScreen(infoRegisterState = InfoRegisterState())
+        InfoRegisterScreen(infoRegisterState = InfoRegisterState(), showPassword = false)
     }
 
 }

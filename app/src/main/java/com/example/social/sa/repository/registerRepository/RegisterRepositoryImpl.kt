@@ -45,12 +45,16 @@ class TestRegisterRepository @Inject constructor ():RegisterRepository{
         ))
     }
 
-    override suspend fun signUpUser(
+    override suspend fun saveUser(
         email: String,
         userName: String,
         imageUri: String,
         displayName: String
     ) {
+        TODO("Not yet implemented")
+    }
+
+    override suspend fun updateUserProfile(imageUri: String) {
         TODO("Not yet implemented")
     }
 
@@ -82,11 +86,15 @@ class RegisterRepositoryImpl @Inject constructor(
         return authRequest.signInGoogle()
     }
 
+    override suspend fun updateUserProfile(imageUri: String) {
+        authRequest.updateImageProfile(imageUri)
+    }
+
     override suspend fun signInGoogle(intent: Intent): SignInResult {
         return authRequest.signInGoogleResult(intent)
     }
 
-    override suspend fun signUpUser(
+    override suspend fun saveUser(
         email: String,
         userName: String,
         imageUri: String,

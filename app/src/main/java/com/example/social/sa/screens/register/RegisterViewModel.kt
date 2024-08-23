@@ -1,13 +1,12 @@
 package com.example.social.sa.screens.register
 
 import android.content.Intent
-import android.content.IntentSender
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.social.sa.Screens
 import com.example.social.sa.coroutine.DispatcherProvider
 import com.example.social.sa.repository.registerRepository.RegisterRepository
+import com.example.social.sa.utils.isEmailValid
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -65,7 +64,8 @@ class RegisterViewModel @Inject constructor(
                                 RegisterEffect.NavigateToInfoRegister(
                                     getResult.userInfo!!.email,
                                     getResult.userInfo!!.name,
-                                    getResult.userInfo!!.photo
+                                    getResult.userInfo!!.photo,
+                                    true
                                 )
                             }
                         } else {
@@ -123,16 +123,22 @@ class RegisterViewModel @Inject constructor(
 
                     } else {
                         _effect.update {
-                            RegisterEffect.ToastError(signResult.error ?: "Unknown Error")
+                            RegisterEffect.ToastError(signResult.error?.message ?: "Unknown Error")
                         }
                     }
                 }
             }
 
             RegisterEvent.SignUp -> {
-                val getEmail = _state.value.email.content
+               val email = _state.value.email
+                if (!email.content.isEmailValid || email.content.isEmpty()){
+                    _state.update { it.copy(
+                        email = it.email.copy(isError = true, errorText = "Email is not valid")
+                    ) }
+                    return
+                }
                 _effect.update {
-                    RegisterEffect.NavigateToInfoRegister(getEmail, null, null)
+                    RegisterEffect.NavigateToInfoRegister(email.content, null, null)
                 }
             }
         }
@@ -174,7 +180,7 @@ class RegisterViewModel @Inject constructor(
 sealed class RegisterEffect {
     class Navigate(val route: String) : RegisterEffect()
     class ToastError(val message: String) : RegisterEffect()
-    class NavigateToInfoRegister(val email: String, val userName: String?, val imageUrl: String?) :
+    class NavigateToInfoRegister(val email: String, val userName: String?, val imageUrl: String?,val isGoogle: Boolean = false) :
         RegisterEffect()
 }
 
