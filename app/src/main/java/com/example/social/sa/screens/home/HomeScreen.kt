@@ -1,63 +1,61 @@
 package com.example.social.sa.screens.home
 
+import android.content.res.Configuration
 import androidx.compose.animation.animateContentSize
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Alignment.Companion.CenterVertically
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.tooling.preview.Wallpapers
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
@@ -66,32 +64,223 @@ import coil.compose.AsyncImage
 import com.example.social.sa.R
 import com.example.social.sa.Screens
 import com.example.social.sa.component.ExpandText
-import com.example.social.sa.model.CommentsPost
+import com.example.social.sa.component.RoundedFilterChip
+import com.example.social.sa.component.defaultRoundedFilterChipColors
+import com.example.social.sa.component.nestedScrollConnectionNoAction
+import com.example.social.sa.component.selectedRoundedFilterChipLike
+import com.example.social.sa.model.Comment
 import com.example.social.sa.model.Posts
 import com.example.social.sa.ui.theme.SocialTheme
-import com.example.social.sa.ui.theme.SurfaceColor
-import com.example.social.sa.utils.PreviewBothLightAndDark
 import kotlinx.coroutines.launch
 
 fun NavGraphBuilder.homeDest(navController: NavController, paddingValues: PaddingValues) {
     composable(Screens.HomeScreen.route) {
         val homeViewModel = hiltViewModel<HomeViewModel>()
         val state by homeViewModel.state.collectAsState()
-        HomeScreen(state = state, paddingValues)
+        HomeScreen(state = state, paddingValues, onUserClick = {
+            navController.navigate(Screens.UserInfoRoute(""))
+
+        }, onPreviewImageNavigate = {
+            // TODO: add later navigate image to image preview
+        })
 
     }
 }
 
-@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun Comments(modifier: Modifier = Modifier, comments: List<Comment>) {
+    LazyColumn {
+        items(comments, key = {
+            it.commentId
+        }) {
+            var showSubComments by rememberSaveable {
+                mutableIntStateOf(0)
+            }
+            val showCurrentSubComment by remember(showSubComments) {
+                mutableStateOf(it.getReplies().subList(0, showSubComments))
+            }
+            CommentItem(
+                imageUri = it.imageUrl,
+                displayName = it.displayName,
+                time = "2d",
+                comment = it.comment,
+                likes = it.likes,
+            )
+            showCurrentSubComment.forEach {
+                CommentItem(
+                    imageUri = it.imageUrl,
+                    displayName = it.displayName,
+                    time = "5d",
+                    comment = it.comment,
+                    likes = 44,
+                    modifier = Modifier
+                        .padding(start = 32.dp)
+                        .animateItem()
+                )
+            }
+            if (it.hasReplies()) {
+                Text(
+                    text = "View ${it.getReplies().size} more replies",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Light,
+                    fontSize = 15.sp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable {
+                            if (it.getReplies().size > showSubComments) {
+                                val calculateSize = it.getReplies().size - showSubComments
+                                // TODO: fix it later show 5 comments
+                                showSubComments += if (calculateSize >= 0) it.getReplies().size else 5
+                            }
+                        },
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun CommentItem(
+    modifier: Modifier = Modifier,
+    imageUri: String,
+    displayName: String,
+    time: String,
+    comment: String,
+    likes: Int,
+) {
+
+    Column(modifier) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            AsyncImage(
+                model = "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+                contentDescription = "sender image",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape),
+                placeholder = painterResource(id = R.drawable.text_image)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(modifier = Modifier) {
+                Row {
+                    Text(text = "salman", fontWeight = FontWeight.Medium)
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "2d",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Text(text = comment, fontWeight = FontWeight.Medium)
+                Text(
+                    text = "Replay",
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = FontWeight.Light,
+                    fontSize = 15.sp
+                )
+
+            }
+            Spacer(modifier = Modifier.weight(1f))
+            IconButton(
+                onClick = { /*TODO*/ },
+                modifier = Modifier.align(Alignment.CenterVertically)
+            ) {
+                Row {
+                    Icon(
+                        painter = painterResource(id = R.drawable.black_like_icon),
+                        contentDescription = "liked"
+                    )
+                    Text(text = likes.toString())
+                }
+            }
+
+        }
+    }
+}
+
+val COMMENTS = (0..50).map {
+    if (it % 2 == 0) {
+        Comment(
+            "$it", "",
+            "",
+            "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+            "salman", "test", "2d", 15
+        ).apply {
+
+            addReply(
+                Comment(
+                    "", "",
+                    "",
+                    "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+                    "salman", "test", "2d", 15
+                )
+            )
+            addReply(
+                Comment(
+                    "", "",
+                    "",
+                    "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+                    "salman", "test", "2d", 15
+                )
+            )
+            addReply(
+                Comment(
+                    "", "",
+                    "",
+                    "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+                    "salman", "test", "2d", 15
+                )
+            )
+            addReply(
+                Comment(
+                    "", "",
+                    "",
+                    "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+                    "salman", "test", "2d", 15
+                )
+            )
+
+        }
+    } else {
+        Comment(
+            "$it", "",
+            "",
+            "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+            "salman", "test", "2d", 15
+        )
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     state: HomeScreenState,
-    paddingValues: PaddingValues
+    paddingValues: PaddingValues,
+    onUserClick: () -> Unit = {},
+    onPreviewImageNavigate: (String) -> Unit
 ) {
+
+    var showComments by remember {
+        mutableStateOf(false)
+    }
+    val testComment = remember {
+        COMMENTS
+    }
+    if (showComments) {
+        ModalBottomSheet(onDismissRequest = { showComments = false }) {
+            Comments(comments = testComment)
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(paddingValues)
+            .padding(4.dp)
     ) {
         if (state.isLoading) {
             LinearProgressIndicator(Modifier.fillMaxWidth())
@@ -102,29 +291,32 @@ fun HomeScreen(
         val pagerState = rememberPagerState {
             tabs.size
         }
+        var currentTabs by remember {
+            mutableStateOf(TabItem.HOME)
+        }
         val scope = rememberCoroutineScope()
-        TabRow(selectedTabIndex = pagerState.currentPage) {
-            tabs.forEachIndexed { index, tabItem ->
-                Tab(selected = index == pagerState.currentPage, onClick = {
-                    scope.launch {
-                        pagerState.animateScrollToPage(index)
-                    }
-                }, text = {
-                    Text(text = stringResource(id = tabItem.tabName))
-                })
+        FilterHomePosts(currentTabItem = currentTabs, tabs = tabs) {
+            scope.launch {
+                currentTabs = TabItem.values()[it]
+                pagerState.animateScrollToPage(it)
             }
         }
+        HorizontalDivider()
+
         HorizontalPager(
             state = pagerState, modifier = Modifier
-                .fillMaxSize()
+                .fillMaxSize(),
+            pageNestedScrollConnection = nestedScrollConnectionNoAction
         ) {
             when (tabs[it]) {
                 TabItem.HOME -> {
-                    Posts(state.homePosts)
+                    PostsItems(state.homePosts, onCommentClick = {
+                        showComments = true
+                    }, onUserClick = onUserClick, onPreviewImageNavigate = onPreviewImageNavigate)
                 }
 
                 TabItem.FOR_YOU -> {
-                    Posts(state.forYouPosts)
+//                    Posts(state.forYouPosts)
                 }
             }
         }
@@ -132,22 +324,44 @@ fun HomeScreen(
 }
 
 @Composable
-fun Posts(
-    posts: List<Posts>
+fun FilterHomePosts(
+    modifier: Modifier = Modifier,
+    currentTabItem: TabItem,
+    tabs: List<TabItem>,
+    onClick: (Int) -> Unit
 ) {
+    Row(modifier = modifier, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        tabs.forEach {
+            RoundedFilterChip(
+                selected = it == currentTabItem,
+                onClick = {
+                    onClick(tabs.indexOf(it))
+                },
+                label = stringResource(id = it.tabName),
+                colors = FilterChipDefaults.filterChipColors(
+                    selectedContainerColor = MaterialTheme.colorScheme.primary,
+                    selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                )
+            )
+        }
+    }
+}
+
+@Composable
+fun PostsItems(
+    posts: List<Posts>,
+    onCommentClick: () -> Unit,
+    onUserClick: () -> Unit,
+    onPreviewImageNavigate: (String) -> Unit
+) {
+
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         items(posts) {
             Post(
-                postId = it.postId,
-                uidUser = it.uidUser,
-                profileImage = it.profileUser,
-                userName = it.userName,
-                displayName = it.userName,
-                dateTime = it.dateTime,
-                imageContent = it.imageContent,
-                contentText = it.contentText,
-                comments = it.comments.size,
-                likes = it.likes.size
+                post = it,
+                onCommentClick = onCommentClick,
+                onUserClick = onUserClick,
+                onPreviewImageNavigate = onPreviewImageNavigate
             )
         }
     }
@@ -156,157 +370,182 @@ fun Posts(
 @Composable
 fun Post(
     modifier: Modifier = Modifier,
-    postId: String,
-    uidUser: String,
-    profileImage: String,
-    userName: String,
-    displayName: String,
-    dateTime: String,
-    imageContent: String?,
-    contentText: String,
-    comments: Int,
-    likes: Int
+    post: Posts,
+    onPreviewImageNavigate: (String) -> Unit,
+    // TODO fix comment for bottom sheet inside post sections only
+    onCommentClick: () -> Unit,
+    onUserClick: () -> Unit
 ) {
     var showMoreContent by rememberSaveable {
         mutableStateOf(false)
     }
-    Card(
-        modifier = modifier
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(0f),
-        colors = CardDefaults.cardColors(containerColor = SurfaceColor.surfaces.surfaceContainer)
-    ) {
+    Column(modifier = modifier) {
+        Spacer(modifier = Modifier.height(8.dp))
         Row(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = profileImage,
-                contentDescription = "",
-                modifier = Modifier.size(40.dp).clip(CircleShape),
-                contentScale = ContentScale.Crop
+                model = "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+                contentDescription = "sender image",
+                contentScale = ContentScale.Crop,
+                modifier = Modifier
+                    .size(40.dp)
+                    .clip(CircleShape)
+                    .clickable {
+                        onUserClick()
+                    },
+                placeholder = painterResource(id = R.drawable.text_image)
             )
-            Column(modifier = Modifier.padding(4.dp)) {
-                Text(
-                    text = displayName,
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onBackground
-                )
+            Spacer(modifier = Modifier.width(9.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(text = "salman", fontWeight = FontWeight.Medium)
                 Row {
-                    Text(text = userName, style = MaterialTheme.typography.labelSmall)
+                    Text(text = "@salman179", fontWeight = FontWeight.Normal)
+                    Spacer(modifier = Modifier.width(4.dp))
                     Box(
                         modifier = Modifier
-                            .padding(horizontal = 4.dp)
                             .size(4.dp)
                             .background(
-                                MaterialTheme.colorScheme.onBackground,
+                                MaterialTheme.colorScheme.onSurface,
                                 CircleShape
                             )
-                            .align(CenterVertically)
+                            .clip(
+                                CircleShape
+                            )
+                            .align(Alignment.CenterVertically)
+                            .padding(horizontal = 2.dp)
                     )
-                    Text(text = dateTime, style = MaterialTheme.typography.labelSmall)
-
-
+                    Text(
+                        text = "2d",
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
+                Spacer(modifier = Modifier.height(12.dp))
+
+
             }
-            Spacer(modifier = Modifier.weight(1f))
-            IconButton(onClick = { /*TODO*/ }) {
-                Icon(imageVector = Icons.Default.MoreVert, contentDescription = "")
-            }
-        }
-        imageContent?.let {
-            AsyncImage(
-                model = it,
-                contentDescription = "",
-                Modifier
-                    .fillMaxWidth()
-                    .heightIn(250.dp, 500.dp)
-                    .padding(4.dp)
-                    .clip(RoundedCornerShape(30f)),
-                contentScale = ContentScale.Crop
-            )
-        }
 
-        ExpandText(
-            text = contentText,
-            onExpandClick = { showMoreContent = it },
-            showMore = showMoreContent,
-            modifier = Modifier
-                .padding(8.dp)
-                .animateContentSize()
-        )
-        Divider()
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(IntrinsicSize.Min),
-            verticalAlignment = CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            IconWithText(
-                Modifier.weight(1f),
-                icon = painterResource(id = R.drawable.unlike_icon),
-                label = "500"
-            )
-            Divider(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .width(1.dp)
-            )
-            IconWithText(
-                Modifier.weight(1f),
-                icon = painterResource(id = R.drawable.comment_icon),
-                label = "500"
-            )
-        }
-        Divider()
-    }
-}
 
-@Composable
-fun IconWithText(
-    modifier: Modifier = Modifier,
-    icon: Painter,
-    label: String
-) {
-    Row(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(40.dp)
-            .clickable { }
-            ,
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.Center
-    ) {
-        Icon(painter = icon, contentDescription = "")
-        Spacer(modifier = Modifier.width(14.dp))
-        Text(text = label, fontWeight = FontWeight.Light)
-    }
-}
-
-@PreviewBothLightAndDark
-@Composable
-fun PostPreview() {
-    SocialTheme {
-        LazyColumn(content = {
-            items(50) {
-                Post(
-                    postId = "0",
-                    uidUser = "",
-                    profileImage = "",
-                    userName = "@salman",
-                    displayName = "salman",
-                    dateTime = "3d",
-                    imageContent = "",
-                    contentText = "1222222222222",
-                    comments = 150,
-                    likes = 150
+            IconButton(onClick = { }) {
+                Icon(
+                    painter = painterResource(id = R.drawable.dots_icon),
+                    contentDescription = "dots icon"
                 )
             }
-        })
+        }
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(start = 36.dp)
+                .animateContentSize()
+        ) {
+            ExpandText(
+                text = post.content, style = MaterialTheme.typography.bodyMedium.copy(
+                    fontSize = 18.sp, color = MaterialTheme.colorScheme.onSurface
+                ), showMore = showMoreContent
+            ) {
+                showMoreContent = it
+            }
+            Spacer(modifier = Modifier.height(12.dp))
+            Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                post.images.forEach {
+                    AsyncImage(
+                        model = it,
+                        contentDescription = "Image Content",
+                        modifier = Modifier
+                            .size(230.dp)
+                            .clip(RoundedCornerShape(6.dp))
+                            .clickable {
+                                onPreviewImageNavigate(it)
+                            },
+                        contentScale = ContentScale.Crop
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                }
+                Spacer(modifier = Modifier.height(16.dp))
 
+            }
+
+            PostInfo(
+                likeCount = post.likes,
+                commentCount = post.comments,
+                shareCount = post.share,
+                isLiked = post.likes != 0,
+                onCommentClick = onCommentClick
+            )
+
+        }
+        HorizontalDivider()
+    }
+}
+
+@Composable
+fun PostInfo(
+    modifier: Modifier = Modifier,
+    likeCount: Int,
+    commentCount: Int,
+    shareCount: Int,
+    isLiked: Boolean,
+    onCommentClick: () -> Unit
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        RoundedFilterChip(
+            selected = isLiked,
+            onClick = { /*TODO*/ },
+            label = likeCount.toString(),
+            leadingIcon = painterResource(
+                id = if (!isLiked) R.drawable.black_like_icon else R.drawable.liked_icon
+            ),
+            colors = if (!isLiked) defaultRoundedFilterChipColors() else selectedRoundedFilterChipLike()
+        )
+        RoundedFilterChip(
+            selected = false,
+            onClick = onCommentClick,
+            label = likeCount.toString(),
+            leadingIcon = painterResource(
+                id = R.drawable.comments_icon
+            ),
+            colors = defaultRoundedFilterChipColors()
+        )
+        RoundedFilterChip(
+            selected = false,
+            onClick = { /*TODO*/ },
+            label = likeCount.toString(),
+            leadingIcon = painterResource(
+                id = R.drawable.share_icon
+            ),
+            colors = defaultRoundedFilterChipColors()
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        OutlinedIconButton(onClick = { /*TODO*/ }, modifier = Modifier.size(34.dp)) {
+            Icon(
+                painter = painterResource(id = R.drawable.bookmark_icon),
+                contentDescription = "book mark"
+            )
+        }
+    }
+
+}
+
+@Preview(
+    showBackground = true, showSystemUi = true, wallpaper = Wallpapers.GREEN_DOMINATED_EXAMPLE,
+    uiMode = Configuration.UI_MODE_NIGHT_NO or Configuration.UI_MODE_TYPE_NORMAL,
+)
+@Composable
+private fun PostsPreview() {
+    SocialTheme {
+        CommentItem(
+            imageUri = "",
+            displayName = "salman",
+            time = "aaaaa",
+            comment = "sss",
+            likes = 5,
+        )
     }
 }

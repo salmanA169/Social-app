@@ -1,10 +1,12 @@
 package com.example.social.sa.screens.register
 
+import android.content.Intent
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.social.sa.Screens
 import com.example.social.sa.coroutine.DispatcherProvider
 import com.example.social.sa.repository.registerRepository.RegisterRepository
+import com.example.social.sa.utils.isEmailValid
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -34,12 +36,45 @@ class RegisterViewModel @Inject constructor(
             }
 
             RegisterEvent.ForgetPassword -> TODO()
-            RegisterEvent.GoogleSign -> TODO()
+            RegisterEvent.GoogleSign -> {
+                viewModelScope.launch(dispatcherProvider.io) {
+                    val getGoogleSignIn = userRepository.getGoogleAuthResult()
+                    _state.update {
+                        it.copy(
+                            googleIntentSender = getGoogleSignIn
+                        )
+                    }
+                }
+            }
+
             is RegisterEvent.PasswordDataChange -> {
                 _state.update {
                     it.copy(
                         password = it.password.copy(content = registerEvent.password)
                     )
+                }
+            }
+
+            is RegisterEvent.GoogleSignInResult -> {
+                viewModelScope.launch(dispatcherProvider.io) {
+                    val getResult = userRepository.signInGoogle(registerEvent.intent)
+                    if (getResult.isSuccess) {
+                        if (getResult.userInfo!!.isNewUser) {
+                            _effect.update {
+                                RegisterEffect.NavigateToInfoRegister(
+                                    getResult.userInfo!!.email,
+                                    getResult.userInfo!!.name,
+                                    getResult.userInfo!!.photo,
+                                    true
+                                )
+                            }
+                        } else {
+                            _effect.update {
+                                RegisterEffect.Navigate(Screens.HomeScreen.route)
+                            }
+                        }
+                    }
+
                 }
             }
 
@@ -88,15 +123,27 @@ class RegisterViewModel @Inject constructor(
 
                     } else {
                         _effect.update {
-                            RegisterEffect.ToastError(signResult.error ?: "Unknown Error")
+                            RegisterEffect.ToastError(signResult.error?.message ?: "Unknown Error")
                         }
                     }
                 }
             }
 
-            RegisterEvent.SignUp -> TODO()
+            RegisterEvent.SignUp -> {
+               val email = _state.value.email
+                if (!email.content.isEmailValid || email.content.isEmpty()){
+                    _state.update { it.copy(
+                        email = it.email.copy(isError = true, errorText = "Email is not valid")
+                    ) }
+                    return
+                }
+                _effect.update {
+                    RegisterEffect.NavigateToInfoRegister(email.content, null, null)
+                }
+            }
         }
     }
+
 
     private fun resetContent() {
         _state.update {
@@ -133,6 +180,8 @@ class RegisterViewModel @Inject constructor(
 sealed class RegisterEffect {
     class Navigate(val route: String) : RegisterEffect()
     class ToastError(val message: String) : RegisterEffect()
+    class NavigateToInfoRegister(val email: String, val userName: String?, val imageUrl: String?,val isGoogle: Boolean = false) :
+        RegisterEffect()
 }
 
 sealed class RegisterEvent {
@@ -143,4 +192,5 @@ sealed class RegisterEvent {
     object ForgetPassword : RegisterEvent()
     object SignUp : RegisterEvent()
     object GoogleSign : RegisterEvent()
+    data class GoogleSignInResult(val intent: Intent) : RegisterEvent()
 }

@@ -1,16 +1,13 @@
 package com.example.social.sa
 
 import android.Manifest
-import android.content.ContentUris
-import android.os.Build
 import android.os.Bundle
-import android.provider.MediaStore
-import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.registerForActivityResult
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -26,30 +23,34 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
-import com.example.social.sa.component.AppBar
-import com.example.social.sa.screens.home.homeDest
+import com.example.social.sa.component.HomeAppBar
+import com.example.social.sa.screens.camera.cameraDest
 import com.example.social.sa.screens.home.add_edit_post.addEditPostDest
+import com.example.social.sa.screens.home.homeDest
+import com.example.social.sa.screens.preview.mediaPreviewDest
+import com.example.social.sa.screens.register.info_register.infoRegisterDest
 import com.example.social.sa.screens.register.registerDest
+import com.example.social.sa.screens.userInfo.userInfoDest
 import com.example.social.sa.ui.theme.SocialTheme
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.withContext
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        enableEdgeToEdge()
         val requestPermission =
             registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
 
@@ -58,9 +59,13 @@ class MainActivity : ComponentActivity() {
             arrayOf(
                 Manifest.permission.READ_MEDIA_IMAGES,
                 Manifest.permission.READ_EXTERNAL_STORAGE,
-                Manifest.permission.ACCESS_MEDIA_LOCATION
+                Manifest.permission.ACCESS_MEDIA_LOCATION,
+                Manifest.permission.CAMERA,
+                Manifest.permission.WRITE_EXTERNAL_STORAGE,
+                Manifest.permission.READ_MEDIA_VIDEO,
             )
         )
+
         setContent {
             SocialTheme {
                 // A surface container using the 'background' color from the theme
@@ -74,17 +79,18 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
     val controller = rememberNavController()
     val mainViewModel = hiltViewModel<MainViewModel>()
-    val state by mainViewModel.state.collectAsState()
+    val state by mainViewModel.state.collectAsStateWithLifecycle()
     val navBackStackEntry by controller.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     LaunchedEffect(key1 = state.shouldNavigateLoginScreen) {
         if (state.shouldNavigateLoginScreen) {
-            controller.navigate(Screens.RegisterScreen.route) {
+            controller.navigate(Screens.RegisterScreen) {
                 popUpTo(Screens.HomeScreen.route) {
                     inclusive = true
                 }
@@ -99,6 +105,8 @@ fun MainScreen() {
     val shouldShow = remember(state.shouldNavigateLoginScreen, currentDestination?.route ?: "") {
         !state.shouldNavigateLoginScreen && screens.any { it.route == currentDestination?.route }
     }
+    // TODO: fix it later
+
     Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
         // TODO: improve it later
         AnimatedVisibility(visible = shouldShow) {
@@ -132,12 +140,12 @@ fun MainScreen() {
         }
     }, topBar = {
         AnimatedVisibility(visible = shouldShow) {
-            AppBar(image = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png")
+            HomeAppBar(image = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png")
         }
     }, floatingActionButton = {
         AnimatedVisibility(visible = shouldShow) {
             FloatingActionButton(onClick = {
-                controller.navigate(Screens.PostReviewScreen.route)
+                controller.navigate(Screens.PostReviewScreen)
             }) {
                 Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
             }
@@ -163,10 +171,16 @@ fun MainScreen() {
             }
             composable(Screens.InboxScreen.route) {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    Text(text = "Inbox", Modifier.align(Alignment.Center))
+                    Text(text = "Inbox", Modifier.align(Alignment.Center).clickable {
+                        mainViewModel.signOut()
+                    })
                 }
             }
             registerDest(controller)
+            cameraDest(controller)
+            mediaPreviewDest(navController = controller)
+            userInfoDest(navController = controller)
+            infoRegisterDest(navController = controller)
         }
     }
 }
