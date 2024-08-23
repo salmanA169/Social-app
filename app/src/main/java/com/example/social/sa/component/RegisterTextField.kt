@@ -24,6 +24,7 @@ fun RegisterTextField(
     supportText: String,
     value: String,
     visualTransformation: VisualTransformation = VisualTransformation.None,
+    label:String,
     trailingIcon : Painter? = null,
     onTrailingIconClick : ()-> Unit={} ,
     onValueChange: (String) -> Unit
@@ -33,6 +34,7 @@ fun RegisterTextField(
         onValueChange = onValueChange,
         isError = isError,
         modifier = modifier,
+        label = { Text(text = label)},
         supportingText = {
             if (isError) {
                 Text(text = supportText)
@@ -63,7 +65,8 @@ fun RegisterTextFieldPreview() {
             hint = "Enter Your email",
             isError = false,
             value = "sss",
-            supportText = ""
+            supportText = "",
+            label = "sssss"
         ) {
 
         }

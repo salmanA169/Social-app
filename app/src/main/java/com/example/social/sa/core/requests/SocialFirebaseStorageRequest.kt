@@ -30,6 +30,9 @@ class SocialFirebaseStorageRequest @Inject constructor(
         }
     }
 
+    suspend fun getUserProfileUri(userUUID:String):String{
+        return storage.reference.child(userUUID).child(Constants.IMAGE_USER_PATH).downloadUrl.await().toString()
+    }
     // TODO: implement upload images here
 }
 

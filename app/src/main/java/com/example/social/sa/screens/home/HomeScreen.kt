@@ -79,6 +79,9 @@ fun NavGraphBuilder.homeDest(navController: NavController, paddingValues: Paddin
         val state by homeViewModel.state.collectAsState()
         HomeScreen(state = state, paddingValues, onUserClick = {
             navController.navigate(Screens.UserInfoRoute(""))
+
+        }, onPreviewImageNavigate = {
+            // TODO: add later navigate image to image preview
         })
 
     }
@@ -259,6 +262,7 @@ fun HomeScreen(
     state: HomeScreenState,
     paddingValues: PaddingValues,
     onUserClick: () -> Unit = {},
+    onPreviewImageNavigate: (String) -> Unit
 ) {
 
     var showComments by remember {
@@ -306,9 +310,9 @@ fun HomeScreen(
         ) {
             when (tabs[it]) {
                 TabItem.HOME -> {
-                    Posts(state.homePosts, onCommentClick = {
+                    PostsItems(state.homePosts, onCommentClick = {
                         showComments = true
-                    },onUserClick = onUserClick)
+                    }, onUserClick = onUserClick, onPreviewImageNavigate = onPreviewImageNavigate)
                 }
 
                 TabItem.FOR_YOU -> {
@@ -344,10 +348,11 @@ fun FilterHomePosts(
 }
 
 @Composable
-fun Posts(
+fun PostsItems(
     posts: List<Posts>,
     onCommentClick: () -> Unit,
-    onUserClick: () -> Unit
+    onUserClick: () -> Unit,
+    onPreviewImageNavigate: (String) -> Unit
 ) {
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
@@ -355,7 +360,8 @@ fun Posts(
             Post(
                 post = it,
                 onCommentClick = onCommentClick,
-                onUserClick = onUserClick
+                onUserClick = onUserClick,
+                onPreviewImageNavigate = onPreviewImageNavigate
             )
         }
     }
@@ -365,6 +371,8 @@ fun Posts(
 fun Post(
     modifier: Modifier = Modifier,
     post: Posts,
+    onPreviewImageNavigate: (String) -> Unit,
+    // TODO fix comment for bottom sheet inside post sections only
     onCommentClick: () -> Unit,
     onUserClick: () -> Unit
 ) {
@@ -384,8 +392,9 @@ fun Post(
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(40.dp)
-                    .clip(CircleShape).clickable {
-                                                 onUserClick()
+                    .clip(CircleShape)
+                    .clickable {
+                        onUserClick()
                     },
                 placeholder = painterResource(id = R.drawable.text_image)
             )
@@ -447,7 +456,10 @@ fun Post(
                         contentDescription = "Image Content",
                         modifier = Modifier
                             .size(230.dp)
-                            .clip(RoundedCornerShape(6.dp)),
+                            .clip(RoundedCornerShape(6.dp))
+                            .clickable {
+                                onPreviewImageNavigate(it)
+                            },
                         contentScale = ContentScale.Crop
                     )
                     Spacer(modifier = Modifier.width(8.dp))

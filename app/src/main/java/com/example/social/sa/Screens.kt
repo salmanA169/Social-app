@@ -21,6 +21,10 @@ sealed class Screens(val route: String) {
     @Serializable
     data class MediaPreviewScreen(val mediaType: String,val uri:String)
 
+    @Serializable
+    data class InfoRegisterRoute(val email:String,val userName:String?,val imageUrl:String?,val isGoogleProvider :Boolean )
+
+
     //    data object MediaPreviewScreen:Screens("media-preview-route"){
 //        override val args: List<NamedNavArgument>
 //            get() = listOf( navArgument(ConstantsArg.MEDIA_PREVIEW_SCREEN_MEDIA_TYPE_ARG){
@@ -33,6 +37,7 @@ sealed class Screens(val route: String) {
 
     @Serializable
     object PostReviewScreen
+
 
     sealed class BottomScreens(route: String, val icon: BottomIcon, val label: String = "") :
         Screens(route)

@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -36,9 +37,10 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.social.sa.component.HomeAppBar
 import com.example.social.sa.screens.camera.cameraDest
-import com.example.social.sa.screens.home.homeDest
 import com.example.social.sa.screens.home.add_edit_post.addEditPostDest
+import com.example.social.sa.screens.home.homeDest
 import com.example.social.sa.screens.preview.mediaPreviewDest
+import com.example.social.sa.screens.register.info_register.infoRegisterDest
 import com.example.social.sa.screens.register.registerDest
 import com.example.social.sa.screens.userInfo.userInfoDest
 import com.example.social.sa.ui.theme.SocialTheme
@@ -77,6 +79,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen() {
@@ -102,6 +105,8 @@ fun MainScreen() {
     val shouldShow = remember(state.shouldNavigateLoginScreen, currentDestination?.route ?: "") {
         !state.shouldNavigateLoginScreen && screens.any { it.route == currentDestination?.route }
     }
+    // TODO: fix it later
+
     Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
         // TODO: improve it later
         AnimatedVisibility(visible = shouldShow) {
@@ -166,13 +171,16 @@ fun MainScreen() {
             }
             composable(Screens.InboxScreen.route) {
                 Box(modifier = Modifier.fillMaxSize()) {
-                    Text(text = "Inbox", Modifier.align(Alignment.Center))
+                    Text(text = "Inbox", Modifier.align(Alignment.Center).clickable {
+                        mainViewModel.signOut()
+                    })
                 }
             }
             registerDest(controller)
             cameraDest(controller)
             mediaPreviewDest(navController = controller)
             userInfoDest(navController = controller)
+            infoRegisterDest(navController = controller)
         }
     }
 }

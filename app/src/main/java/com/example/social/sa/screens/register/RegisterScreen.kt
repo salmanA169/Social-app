@@ -1,7 +1,11 @@
 package com.example.social.sa.screens.register
 
 import android.util.Log
+import android.webkit.URLUtil
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -13,6 +17,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.ClickableText
@@ -57,12 +62,14 @@ import com.example.social.sa.component.RegisterTextField
 import com.example.social.sa.ui.theme.SocialTheme
 import com.example.social.sa.utils.PreviewBothLightAndDark
 
+// TODO: there is some issue when navigate to infoScreen then back to register screen it duplicated screen register
 fun NavGraphBuilder.registerDest(navController: NavController) {
     composable<Screens.RegisterScreen>() {
         val registerViewModel = hiltViewModel<RegisterViewModel>()
         val context = LocalContext.current
         val state by registerViewModel.state.collectAsState()
         val effect by registerViewModel.effect.collectAsState()
+
         LaunchedEffect(key1 = effect) {
             when (effect) {
                 is RegisterEffect.Navigate -> {
@@ -72,7 +79,6 @@ fun NavGraphBuilder.registerDest(navController: NavController) {
                         }
                     }
                 }
-
                 is RegisterEffect.ToastError -> {
                     Toast.makeText(
                         context,
@@ -82,7 +88,18 @@ fun NavGraphBuilder.registerDest(navController: NavController) {
                 }
 
                 null -> Unit
+                is RegisterEffect.NavigateToInfoRegister -> {
+                    navController.navigate(
+                        Screens.InfoRegisterRoute(
+                            (effect as RegisterEffect.NavigateToInfoRegister).email,
+                            (effect as RegisterEffect.NavigateToInfoRegister).userName,
+                            (effect as RegisterEffect.NavigateToInfoRegister).imageUrl,
+                            (effect as RegisterEffect.NavigateToInfoRegister).isGoogle
+                        )
+                    )
+                }
             }
+            registerViewModel.resetEffect()
         }
         RegisterScreen(state, registerViewModel::onEvent)
     }
@@ -98,12 +115,28 @@ fun RegisterScreen(
         RegisterType.values().toList()
     }
 
+    val registerIntentSender =
+        rememberLauncherForActivityResult(contract = ActivityResultContracts.StartIntentSenderForResult()) {
+            onRegisterType(
+                RegisterEvent.GoogleSignInResult(
+                    it.data ?: return@rememberLauncherForActivityResult
+                )
+            )
+        }
 
+    LaunchedEffect(key1 = registerState.googleIntentSender) {
+        if (registerState.googleIntentSender != null) {
+            registerIntentSender.launch(
+                IntentSenderRequest.Builder(registerState.googleIntentSender).build()
+            )
+        }
+    }
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(16.dp)
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState())
+            .systemBarsPadding(),
     ) {
         Text(text = "App Name ", fontSize = 30.sp, modifier = Modifier.align(CenterHorizontally))
         Spacer(modifier = Modifier.height(16.dp))
@@ -171,7 +204,8 @@ fun SignupSection(email: InputData, onRegisterType: (RegisterEvent) -> Unit) {
             value = email.content,
             onValueChange = {
                 onRegisterType(RegisterEvent.EmailDataChange(it))
-            }
+            },
+            label = stringResource(id = R.string.email)
         )
         Spacer(modifier = Modifier.height(18.dp))
         RegisterButton(
@@ -215,7 +249,8 @@ fun SignInSection(
             value = email.content,
             onValueChange = {
                 onRegisterType(RegisterEvent.EmailDataChange(it))
-            }
+            },
+            label = stringResource(id = R.string.email)
         )
         Spacer(modifier = Modifier.height(16.dp))
         RegisterTextField(
@@ -231,7 +266,8 @@ fun SignInSection(
             trailingIcon = painterResource(id = iconPassword),
             onTrailingIconClick = {
                 showPassword = !showPassword
-            }
+            },
+            label = stringResource(id = R.string.password)
         )
         Spacer(modifier = Modifier.height(16.dp))
         ClickableText(modifier = Modifier.align(End),
@@ -262,7 +298,7 @@ fun SignInSection(
         Spacer(modifier = Modifier.height(18.dp))
 
         RegisterIconButton(icon = painterResource(id = R.drawable.google_icon)) {
-
+            onRegisterType(RegisterEvent.GoogleSign)
         }
 
 

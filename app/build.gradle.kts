@@ -73,8 +73,11 @@ dependencies {
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.8.3")
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.3")
-    implementation("androidx.activity:activity-compose:1.9.0")
-    implementation(platform("androidx.compose:compose-bom:2024.06.00"))
+    implementation("androidx.activity:activity-compose:1.9.1")
+    val composeBom = platform("androidx.compose:compose-bom:2024.08.00")
+    implementation(composeBom)
+    testImplementation(composeBom)
+    androidTestImplementation(composeBom)
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-graphics")
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -145,5 +148,7 @@ dependencies {
     implementation("androidx.work:work-runtime-ktx:$work_version")
     androidTestImplementation("androidx.work:work-testing:$work_version")
 
-
+    testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0-RC")
+    testImplementation("app.cash.turbine:turbine:1.1.0")
+    testImplementation ("com.google.truth:truth:1.4.4")
 }

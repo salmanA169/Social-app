@@ -15,12 +15,11 @@ import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.ktx.userProfileChangeRequest
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.tasks.await
-import java.lang.Exception
 import javax.inject.Inject
 
 class AuthRequest @Inject constructor(
     private val authFirebaseAuth: FirebaseAuth,
-  @ApplicationContext  private val context: Context
+    @ApplicationContext private val context: Context
 ) {
 
     private val signInRequestGoogle = BeginSignInRequest.builder()
@@ -28,7 +27,7 @@ class AuthRequest @Inject constructor(
             BeginSignInRequest.GoogleIdTokenRequestOptions.builder()
                 .setSupported(true)
                 .setServerClientId("621340764167-3va8b17kre8srg5vc9fhasj6jh3daltv.apps.googleusercontent.com")
-                .setFilterByAuthorizedAccounts(true)
+                .setFilterByAuthorizedAccounts(false)
                 .build()
         )
         .setAutoSelectEnabled(true)
@@ -38,93 +37,113 @@ class AuthRequest @Inject constructor(
     @Inject
     lateinit var firebaseStorage: SocialFirebaseStorageRequest
 
-    suspend fun signInEmail(email: String,password: String):SignInResult{
+    suspend fun signInEmail(email: String, password: String): SignInResult {
         return try {
-            val signInResult = authFirebaseAuth.signInWithEmailAndPassword(email,password).await().user!!
+            val signInResult =
+                authFirebaseAuth.signInWithEmailAndPassword(email, password).await().user!!
             SignInResult(
-                true,null,UserInfoRegister(
+                true, null, UserInfoRegister(
                     signInResult.email!!,
-                    signInResult.displayName?:"",
+                    signInResult.displayName ?: "",
                     signInResult.uid,
                     signInResult.photoUrl.toString(),
                     false
                 )
             )
-        }catch (e:Exception){
+        } catch (e: Exception) {
             Log.e("AuthRequest", "signInEmail: Error", e)
             SignInResult(
-                false,e.message,null
+                false, e, null
             )
         }
     }
 
-    suspend fun signUpNewUser(email:String,password:String,userName:String,imageUri:String):SignInResult{
+    suspend fun updateImageProfile(imageUri: String){
+        authFirebaseAuth.currentUser?.let {
+            it.updateProfile(com.google.firebase.auth.userProfileChangeRequest {
+                photoUri = imageUri.toUri()
+            }).await()
+        }
+    }
+    suspend fun signUpNewUser(
+        email: String,
+        password: String,
+        userName: String,
+        imageUri: String
+    ): SignInResult {
         return try {
-            if (!email.isEmailValid){
-                SignInResult(false,"Email not valid",null)
+            if (!email.isEmailValid) {
+                SignInResult(false, Exception("Email not valid"), null)
             }
-            val authResult = authFirebaseAuth.createUserWithEmailAndPassword(email, password).await()
+            val authResult =
+                authFirebaseAuth.createUserWithEmailAndPassword(email, password).await()
             val userInfo = authResult.user!!
-            val uploadResult = firebaseStorage.uploadImageProfileToStorage(userInfo.uid,imageUri.toUri())
-            if (uploadResult.isSuccess){
+            val uploadResult =
+                firebaseStorage.uploadImageProfileToStorage(userInfo.uid, imageUri.toUri())
+            if (uploadResult.isSuccess) {
                 val updatedProfile = userProfileChangeRequest {
                     displayName = userName
-                    photoUri = imageUri.toUri()
+                    photoUri = uploadResult.data?.toUri()
                 }
                 userInfo.updateProfile(updatedProfile).await()
                 SignInResult(
-                    true,null, UserInfoRegister(
+                    true, null, UserInfoRegister(
                         userInfo.email!!,
                         userInfo.displayName!!,
                         userInfo.uid,
-                        userInfo.photoUrl?.toString()?:"",
+                        userInfo.photoUrl?.toString() ?: "",
                         true
                     )
                 )
-            }else{
-                SignInResult(false,uploadResult.error?:"Unknown Error")
+            } else {
+                SignInResult(false, Exception(uploadResult.error ?: "Unknown Error"))
             }
-        }catch (e:Exception){
+        } catch (e: Exception) {
             SignInResult(
-                false,e.message,null
+                false, e, null
             )
         }
     }
 
 
-    suspend fun signInGoogle():IntentSender?{
+    suspend fun signInGoogle(): IntentSender? {
         return try {
             oneTapClient.beginSignIn(signInRequestGoogle).await().pendingIntent.intentSender
-        }catch (e:Exception){
+        } catch (e: Exception) {
+            Log.e("AuthRequest GoogleSign in", "signInGoogle: called", e)
             null
         }
     }
 
-    suspend fun signOut(){
+    suspend fun signOut() {
         oneTapClient.signOut().await()
         authFirebaseAuth.signOut()
     }
-    suspend fun signInGoogleResult(intent: Intent):SignInResult{
-        val credential = oneTapClient.getSignInCredentialFromIntent(intent)
-        val googleIdToken = credential.googleIdToken
-        val googleCredential = GoogleAuthProvider.getCredential(googleIdToken,null)
 
+    suspend fun signInGoogleResult(intent: Intent): SignInResult {
         return try {
+            val credential = oneTapClient.getSignInCredentialFromIntent(intent)
+            val googleIdToken = credential.googleIdToken
+            val googleCredential = GoogleAuthProvider.getCredential(googleIdToken, null)
             val authResult = authFirebaseAuth.signInWithCredential(googleCredential).await()
             val user = authResult.user!!
             SignInResult(
-                true,null ,UserInfoRegister(
+                true, null, UserInfoRegister(
                     user.email!!,
                     user.displayName!!,
                     user.uid,
-                    user.photoUrl.toString()?:"",
+                    user.photoUrl.toString() ?: "",
                     authResult.additionalUserInfo!!.isNewUser
                 )
             )
-        }catch (e:Exception){
+        } catch (e: Exception) {
+            authFirebaseAuth.currentUser?.let {
+                it.delete()
+            }
             SignInResult(
-                false,e.message,null
+                false, e, null
             )
         }
+
     }
 }

@@ -136,7 +136,7 @@ fun UserInfoScreen(modifier: Modifier = Modifier, userInfoState: UserInfoState) 
                 HorizontalDivider()
             }
             items(userInfoState.postsUser) {
-                Post(post = it, onUserClick = {}, onCommentClick = {})
+                Post(post = it, onUserClick = {}, onCommentClick = {}, onPreviewImageNavigate = {})
             }
         }
     }
