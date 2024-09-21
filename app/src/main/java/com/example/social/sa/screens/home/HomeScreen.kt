@@ -1,6 +1,7 @@
 package com.example.social.sa.screens.home
 
 import android.content.res.Configuration
+import android.util.Log
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -36,6 +37,7 @@ import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedIconButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -44,6 +46,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -71,6 +74,8 @@ import com.example.social.sa.component.selectedRoundedFilterChipLike
 import com.example.social.sa.model.Comment
 import com.example.social.sa.model.Posts
 import com.example.social.sa.ui.theme.SocialTheme
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
 
 fun NavGraphBuilder.homeDest(navController: NavController, paddingValues: PaddingValues) {
@@ -78,8 +83,7 @@ fun NavGraphBuilder.homeDest(navController: NavController, paddingValues: Paddin
         val homeViewModel = hiltViewModel<HomeViewModel>()
         val state by homeViewModel.state.collectAsState()
         HomeScreen(state = state, paddingValues, onUserClick = {
-            navController.navigate(Screens.UserInfoRoute(""))
-
+            navController.navigate(Screens.UserInfoRoute(it))
         }, onPreviewImageNavigate = {
             // TODO: add later navigate image to image preview
         })
@@ -261,7 +265,7 @@ val COMMENTS = (0..50).map {
 fun HomeScreen(
     state: HomeScreenState,
     paddingValues: PaddingValues,
-    onUserClick: () -> Unit = {},
+    onUserClick: (String) -> Unit = {},
     onPreviewImageNavigate: (String) -> Unit
 ) {
 
@@ -293,6 +297,13 @@ fun HomeScreen(
         }
         var currentTabs by remember {
             mutableStateOf(TabItem.HOME)
+        }
+        LaunchedEffect(key1 = pagerState.currentPage) {
+            snapshotFlow { pagerState.currentPage }
+                .distinctUntilChanged()
+                .collectLatest {
+                    currentTabs = TabItem.values()[it]
+                }
         }
         val scope = rememberCoroutineScope()
         FilterHomePosts(currentTabItem = currentTabs, tabs = tabs) {
@@ -351,7 +362,7 @@ fun FilterHomePosts(
 fun PostsItems(
     posts: List<Posts>,
     onCommentClick: () -> Unit,
-    onUserClick: () -> Unit,
+    onUserClick: (String) -> Unit,
     onPreviewImageNavigate: (String) -> Unit
 ) {
 
@@ -374,7 +385,7 @@ fun Post(
     onPreviewImageNavigate: (String) -> Unit,
     // TODO fix comment for bottom sheet inside post sections only
     onCommentClick: () -> Unit,
-    onUserClick: () -> Unit
+    onUserClick: (userUUID:String) -> Unit
 ) {
     var showMoreContent by rememberSaveable {
         mutableStateOf(false)
@@ -387,22 +398,22 @@ fun Post(
             verticalAlignment = Alignment.CenterVertically
         ) {
             AsyncImage(
-                model = "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
+                model = post.senderImage,
                 contentDescription = "sender image",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier
                     .size(40.dp)
                     .clip(CircleShape)
                     .clickable {
-                        onUserClick()
+                        onUserClick(post.senderUUID)
                     },
                 placeholder = painterResource(id = R.drawable.text_image)
             )
             Spacer(modifier = Modifier.width(9.dp))
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = "salman", fontWeight = FontWeight.Medium)
+                Text(text = post.senderDisplayName, fontWeight = FontWeight.Medium)
                 Row {
-                    Text(text = "@salman179", fontWeight = FontWeight.Normal)
+                    Text(text = "@".plus(post.senderUserId), fontWeight = FontWeight.Normal)
                     Spacer(modifier = Modifier.width(4.dp))
                     Box(
                         modifier = Modifier

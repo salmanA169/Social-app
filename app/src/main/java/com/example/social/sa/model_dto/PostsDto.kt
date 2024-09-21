@@ -1,15 +1,14 @@
 package com.example.social.sa.model_dto
 
-import com.example.social.sa.model.CommentsPost
 import com.example.social.sa.model.Posts
-import com.example.social.sa.utils.format
 import com.example.social.sa.utils.toLocalDateTime
 import com.google.firebase.Timestamp
 
 data class PostsDto(
     val postId: String = "",
-    val senderUid: String = "",
+    val senderUID: String = "",
     val senderDisplayName: String = "",
+    val senderUserId:String="",
     val senderImage: String = "",
     val timestamp: Timestamp = Timestamp.now(),
     val content: String = "",
@@ -21,8 +20,9 @@ data class PostsDto(
 fun List<PostsDto>.toPosts() = map { it.toPost() }
 fun PostsDto.toPost() = Posts(
     postId,
-    senderUid,
+    senderUID,
     senderDisplayName,
+    senderUserId,
     senderImage,
     timestamp.toLocalDateTime(),
     content,

@@ -8,6 +8,7 @@ plugins {
     id("com.google.gms.google-services")
     id("org.jlleitschuh.gradle.ktlint") version "11.1.0"
     id("org.jetbrains.kotlin.plugin.serialization")
+
 }
 
 android {
@@ -89,6 +90,7 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 
+    implementation ("androidx.core:core-splashscreen:1.0.1")
 
     val nav_version = "2.8.0-beta04"
 
@@ -105,7 +107,7 @@ dependencies {
 
 
     // firebase
-    implementation(platform("com.google.firebase:firebase-bom:33.1.1"))
+    implementation(platform("com.google.firebase:firebase-bom:33.2.0"))
     implementation("com.google.firebase:firebase-analytics-ktx")
     implementation("com.google.firebase:firebase-auth-ktx")
 
@@ -147,8 +149,13 @@ dependencies {
 
     implementation("androidx.work:work-runtime-ktx:$work_version")
     androidTestImplementation("androidx.work:work-testing:$work_version")
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-analytics")
 
     testImplementation ("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0-RC")
     testImplementation("app.cash.turbine:turbine:1.1.0")
     testImplementation ("com.google.truth:truth:1.4.4")
+
+    implementation("com.squareup.retrofit2:retrofit:2.11.0")
+    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 }

@@ -6,7 +6,7 @@ import com.example.social.sa.model.UserInfo
 
 @Immutable
 data class UserInfoState(
-    val userInfo: UserInfo,
-    val postsUser:List<Posts>,
+    val userInfo: UserInfo?= null,
+    val postsUser:List<Posts> = emptyList(),
     val isFollowing:Boolean = false
 )

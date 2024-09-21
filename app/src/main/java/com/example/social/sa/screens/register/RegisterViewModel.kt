@@ -1,6 +1,7 @@
 package com.example.social.sa.screens.register
 
 import android.content.Intent
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.social.sa.Screens

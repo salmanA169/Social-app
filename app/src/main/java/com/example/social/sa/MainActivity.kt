@@ -2,6 +2,7 @@ package com.example.social.sa
 
 import android.Manifest
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -12,7 +13,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -24,13 +25,18 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.core.splashscreen.SplashScreen
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -39,6 +45,7 @@ import com.example.social.sa.component.HomeAppBar
 import com.example.social.sa.screens.camera.cameraDest
 import com.example.social.sa.screens.home.add_edit_post.addEditPostDest
 import com.example.social.sa.screens.home.homeDest
+import com.example.social.sa.screens.message.messageDest
 import com.example.social.sa.screens.preview.mediaPreviewDest
 import com.example.social.sa.screens.register.info_register.infoRegisterDest
 import com.example.social.sa.screens.register.registerDest
@@ -48,6 +55,8 @@ import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    private lateinit var splashScreens: SplashScreen
+    private var keepSplash = true
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -65,122 +74,145 @@ class MainActivity : ComponentActivity() {
                 Manifest.permission.READ_MEDIA_VIDEO,
             )
         )
-
+        splashScreens = installSplashScreen()
+        splashScreens.setKeepOnScreenCondition{
+            keepSplash
+        }
+        Log.d("MainActivity", "onCreate: $bottomScreens")
         setContent {
             SocialTheme {
                 // A surface container using the 'background' color from the theme
+                val controller = rememberNavController()
+                val mainViewModel = hiltViewModel<MainViewModel>()
+                val state by mainViewModel.state.collectAsStateWithLifecycle()
+                val effect by mainViewModel.effect.collectAsStateWithLifecycle()
+                LaunchedEffect(key1 = state.startDestination) {
+                    if (state.startDestination == StartDestinationStatus.SUCCESS) {
+                        keepSplash = false
+                    }
+                }
+                LaunchedEffect(key1 = effect) {
+                    when(effect){
+                        MainEffect.NavigateToRegisterRoute -> {
+                            controller.navigate(Screens.RegisterScreen.route)
+                        }
+                        null -> Unit
+                    }
+                    mainViewModel.resetEffect()
+                }
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainScreen()
+                    MainScreen(controller, state,mainViewModel::onEvent)
                 }
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainScreen() {
-    val controller = rememberNavController()
-    val mainViewModel = hiltViewModel<MainViewModel>()
-    val state by mainViewModel.state.collectAsStateWithLifecycle()
+fun MainScreen(controller: NavHostController, state: MainState,onEvent: (MainEvent) -> Unit={}) {
     val navBackStackEntry by controller.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
-    LaunchedEffect(key1 = state.shouldNavigateLoginScreen) {
-        if (state.shouldNavigateLoginScreen) {
-            controller.navigate(Screens.RegisterScreen) {
-                popUpTo(Screens.HomeScreen.route) {
-                    inclusive = true
-                }
-            }
-        }
-    }
+
 
     val screens = remember {
         bottomScreens
     }
 
-    val shouldShow = remember(state.shouldNavigateLoginScreen, currentDestination?.route ?: "") {
-        !state.shouldNavigateLoginScreen && screens.any { it.route == currentDestination?.route }
-    }
     // TODO: fix it later
 
-    Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
-        // TODO: improve it later
-        AnimatedVisibility(visible = shouldShow) {
-            NavigationBar {
-                screens.forEach { screen ->
-                    NavigationBarItem(
-                        selected = currentDestination?.hierarchy?.any {
-                            it.route == screen.route
-                        } == true,
-                        onClick = {
-                            controller.navigate(screen.route) {
-                                // Pop up to the start destination of the graph to
-                                // avoid building up a large stack of destinations
-                                // on the back stack as users select items
-                                popUpTo(controller.graph.findStartDestination().id) {
-                                    saveState = true
-                                }
-                                // Avoid multiple copies of the same destination when
-                                // reselecting the same item
-                                launchSingleTop = true
-                                // Restore state when reselecting a previously selected item
-                                restoreState = true
-                            }
+    when(state.startDestination){
+        StartDestinationStatus.LOADING->{
+            CircularProgressIndicator()
+        }
 
-                        },
-                        icon = {
-                            Icon(painter = screen.icon.getIcon(), contentDescription = "")
-                        })
-                }
+        StartDestinationStatus.SUCCESS -> {
+            val shouldShow = remember( currentDestination?.route ?: false) {
+                screens.any { it.route == currentDestination?.route }
             }
-        }
-    }, topBar = {
-        AnimatedVisibility(visible = shouldShow) {
-            HomeAppBar(image = "https://cdn-icons-png.flaticon.com/512/3135/3135715.png")
-        }
-    }, floatingActionButton = {
-        AnimatedVisibility(visible = shouldShow) {
-            FloatingActionButton(onClick = {
-                controller.navigate(Screens.PostReviewScreen)
+            Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
+
+                // TODO: improve it later
+                AnimatedVisibility(visible = shouldShow) {
+                    NavigationBar {
+                        screens.forEach { screen ->
+                            NavigationBarItem(
+                                selected = currentDestination?.hierarchy?.any {
+                                    it.route == screen.route
+                                } == true,
+                                onClick = {
+                                    controller.navigate(screen.route) {
+                                        // Pop up to the start destination of the graph to
+                                        // avoid building up a large stack of destinations
+                                        // on the back stack as users select items
+                                        popUpTo(controller.graph.findStartDestination().id) {
+                                            saveState = true
+                                        }
+                                        // Avoid multiple copies of the same destination when
+                                        // reselecting the same item
+                                        launchSingleTop = true
+                                        // Restore state when reselecting a previously selected item
+                                        restoreState = true
+                                    }
+
+                                },
+                                icon = {
+                                    Icon(painter = screen.icon.getIcon(), contentDescription = "")
+                                })
+                        }
+                    }
+                }
+            }, topBar = {
+                AnimatedVisibility(visible = shouldShow) {
+                    HomeAppBar(image = state.imageProfile)
+                }
+            }, floatingActionButton = {
+                AnimatedVisibility(visible = shouldShow) {
+                    FloatingActionButton(onClick = {
+                        controller.navigate(Screens.PostReviewScreen)
+                    }) {
+                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
+                    }
+                }
             }) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
-            }
-        }
-    }) {
 
-        NavHost(
-            route = "ss",
-            navController = controller,
-            startDestination = Screens.HomeScreen.route
-        ) {
-            homeDest(controller, it)
-            addEditPostDest(controller)
-            composable(Screens.SearchScreen.route) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Text(text = "Search", Modifier.align(Alignment.Center))
+                NavHost(
+                    navController = controller,
+                    startDestination = state.startDestinationRoute!!
+                ) {
+                    homeDest(controller, it)
+                    addEditPostDest(controller)
+                    composable(Screens.SearchScreen.route) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Text(text = "Search", Modifier.align(Alignment.Center))
+                        }
+                    }
+                    composable(Screens.NotificationScreen.route) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Text(text = "notificatoin", Modifier.align(Alignment.Center))
+                        }
+                    }
+                    composable(Screens.InboxScreen.route) {
+                        Box(modifier = Modifier.fillMaxSize()) {
+                            Text(text = "Inbox",
+                                Modifier
+                                    .align(Alignment.Center)
+                                    .clickable {
+                                        onEvent(MainEvent.LogOut)
+                                    })
+                        }
+                    }
+                    registerDest(controller)
+                    cameraDest(controller)
+                    mediaPreviewDest(navController = controller)
+                    userInfoDest(navController = controller)
+                    infoRegisterDest(navController = controller)
+                    messageDest(controller)
                 }
             }
-            composable(Screens.NotificationScreen.route) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Text(text = "notificatoin", Modifier.align(Alignment.Center))
-                }
-            }
-            composable(Screens.InboxScreen.route) {
-                Box(modifier = Modifier.fillMaxSize()) {
-                    Text(text = "Inbox", Modifier.align(Alignment.Center).clickable {
-                        mainViewModel.signOut()
-                    })
-                }
-            }
-            registerDest(controller)
-            cameraDest(controller)
-            mediaPreviewDest(navController = controller)
-            userInfoDest(navController = controller)
-            infoRegisterDest(navController = controller)
+
         }
     }
 }

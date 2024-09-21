@@ -64,7 +64,7 @@ import com.example.social.sa.utils.PreviewBothLightAndDark
 
 // TODO: there is some issue when navigate to infoScreen then back to register screen it duplicated screen register
 fun NavGraphBuilder.registerDest(navController: NavController) {
-    composable<Screens.RegisterScreen>() {
+    composable(Screens.RegisterScreen.route) {
         val registerViewModel = hiltViewModel<RegisterViewModel>()
         val context = LocalContext.current
         val state by registerViewModel.state.collectAsState()
@@ -74,7 +74,7 @@ fun NavGraphBuilder.registerDest(navController: NavController) {
             when (effect) {
                 is RegisterEffect.Navigate -> {
                     navController.navigate((effect as RegisterEffect.Navigate).route) {
-                        popUpTo(Screens.RegisterScreen) {
+                        popUpTo(Screens.RegisterScreen.route) {
                             inclusive = true
                         }
                     }
@@ -98,6 +98,7 @@ fun NavGraphBuilder.registerDest(navController: NavController) {
                         )
                     )
                 }
+
             }
             registerViewModel.resetEffect()
         }

@@ -14,7 +14,9 @@ data class UserInfo(
     val followers: Long,
     val following: Long,
     val postsCount: Long,
-    val bio: String
+    val bio: String,
+    // TODO: maybe remove it no need
+    val chatsRoom: List<String>
 )
 
 fun UserInfo.toUserDto() = UsersDto(

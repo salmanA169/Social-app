@@ -4,8 +4,9 @@ import java.time.LocalDateTime
 
 data class Posts(
     val postId: String,
-    val senderUid: String,
+    val senderUUID: String,
     val senderDisplayName: String,
+    val senderUserId:String="",
     val senderImage: String,
     val timestamp: LocalDateTime,
     val content: String,

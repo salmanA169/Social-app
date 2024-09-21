@@ -1,5 +1,6 @@
 package com.example.social.sa.screens.userInfo
 
+import android.util.Log
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -16,9 +17,12 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -29,6 +33,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavController
 import androidx.navigation.NavGraphBuilder
 import androidx.navigation.compose.composable
@@ -48,46 +54,24 @@ import java.time.LocalDateTime
 fun NavGraphBuilder.userInfoDest(navController: NavController) {
     composable<Screens.UserInfoRoute> {
         val getUserUUid = it.toRoute<Screens.UserInfoRoute>()
-        UserInfoScreen(userInfoState = UserInfoState(
-            postsUser = listOf(
-                Posts(
-                    "",
-                    "",
-                    "Salman Dev",
-                    "",
-                    LocalDateTime.now(),
-                    "Testssssss",
-                    listOf("https://firebasestorage.googleapis.com/v0/b/social-43bfb.appspot.com/o/GstBVqvQLNelKYLdnkHOr9xCwV73%2Fimage_profile%2F1000000035.webp?alt=media&token=b4a7b234-5947-426b-a227-5f9a2ae79ba1"),
-                    10,
-                    10,
-                    10,
-                ),
-                Posts(
-                    "",
-                    "",
-                    "Salman Dev",
-                    "",
-                    LocalDateTime.now(),
-                    "Testssssss",
-                    listOf("https://firebasestorage.googleapis.com/v0/b/social-43bfb.appspot.com/o/B7gOVQc1IbZYfsPJ9IBKCZ65oOG2%2Fimage_profile%2F1000158970.webp?alt=media&token=e6352309-d643-4716-b334-de9e83151fea"),
-                    10,
-                    10,
-                    10,
-                )
-            ),
-            userInfo = UserInfo(
-                "",
-                "",
-                "salman Dev",
-                "https://t3.ftcdn.net/jpg/05/35/47/38/360_F_535473874_OWCa2ohzXXNZgqnlzF9QETsnbrSO9pFS.jpg",
-                Timestamp.now(),
-                "",
-                120,
-                456,
-                123,
-                ""
-            )
-        )
+        val infoViewModel = hiltViewModel<UserInfoViewModel>()
+        val state by infoViewModel.state.collectAsStateWithLifecycle()
+        val effect by infoViewModel.effect.collectAsStateWithLifecycle()
+        LaunchedEffect(key1 = true) {
+            infoViewModel.getUserInfo(getUserUUid.userUid)
+        }
+        LaunchedEffect(key1 = effect ) {
+            when(effect){
+                is UserInfoEffect.NavigateToMessageScreen -> {
+                    navController.navigate(Screens.MessageRoute((effect as UserInfoEffect.NavigateToMessageScreen).chatId))
+                }
+                null -> Unit
+            }
+            infoViewModel.resetEffect()
+        }
+        UserInfoScreen(
+            userInfoState = state,
+            onEvent = infoViewModel::onEvent
         )
     }
 }
@@ -95,12 +79,12 @@ fun NavGraphBuilder.userInfoDest(navController: NavController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserInfoScreen(modifier: Modifier = Modifier, userInfoState: UserInfoState) {
+fun UserInfoScreen(modifier: Modifier = Modifier, userInfoState: UserInfoState,onEvent: (UserInfoEvent)->Unit={}) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(title = {
                 Text(
-                    text = userInfoState.userInfo.displayName,
+                    text = userInfoState.userInfo?.displayName?:"",
                     fontWeight = FontWeight.Bold,
                     fontSize = 19.sp
                 )
@@ -115,23 +99,29 @@ fun UserInfoScreen(modifier: Modifier = Modifier, userInfoState: UserInfoState) 
         }
     ) {
         LazyColumn(modifier = modifier.padding(it)) {
+
             item {
+                if (userInfoState.userInfo == null){
+                    LinearProgressIndicator(modifier= Modifier.fillMaxWidth())
+                }
                 UserImageAndFollowing(
-                    imageUri = userInfoState.userInfo.imageUri,
-                    following = userInfoState.userInfo.following.toString(),
-                    followers = userInfoState.userInfo.followers.toString(),
-                    postCount = userInfoState.userInfo.postsCount.toString()
+                    imageUri = userInfoState.userInfo?.imageUri?:"",
+                    following = userInfoState.userInfo?.following?.toString()?:"0",
+                    followers = userInfoState.userInfo?.followers?.toString()?:"0",
+                    postCount = userInfoState.userInfo?.postsCount?.toString()?:"0"
                 )
             }
             item {
                 Text(
-                    text = userInfoState.userInfo.bio, modifier = Modifier
+                    text = userInfoState.userInfo?.bio?:"", modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
                 )
             }
             item {
-                ButtonActions(isFollowing = true)
+                ButtonActions(isFollowing = true, onMessageClick = {onEvent(UserInfoEvent.MessageClick)}, onFollowClick = {
+                    onEvent(UserInfoEvent.RequestFollow)
+                })
                 Spacer(modifier = Modifier.height(16.dp))
                 HorizontalDivider()
             }
@@ -143,7 +133,7 @@ fun UserInfoScreen(modifier: Modifier = Modifier, userInfoState: UserInfoState) 
 }
 
 @Composable
-fun ButtonActions(modifier: Modifier = Modifier, isFollowing: Boolean) {
+fun ButtonActions(modifier: Modifier = Modifier, isFollowing: Boolean,onMessageClick:()->Unit,onFollowClick:()->Unit) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -151,13 +141,10 @@ fun ButtonActions(modifier: Modifier = Modifier, isFollowing: Boolean) {
     ) {
         PrimaryButton(
             modifier = Modifier.weight(1f),
-            text = if (isFollowing) "Follow" else "Following"
-        ) {
-
-        }
-        SurfaceButton(text = "Message", modifier = Modifier.weight(1.5f)) {
-
-        }
+            text = if (isFollowing) "Follow" else "Following",
+            onClick = onFollowClick
+        )
+        SurfaceButton(text = "Message", modifier = Modifier.weight(1.5f), onClick = onMessageClick)
     }
 }
 
@@ -208,7 +195,7 @@ private fun UserInfoPreview() {
                     Posts(
                         "",
                         "",
-                        "Salman Dev",
+                        "Salman Dev", "",
                         "",
                         LocalDateTime.now(),
                         "Testssssss",
@@ -228,7 +215,7 @@ private fun UserInfoPreview() {
                     120,
                     456,
                     123,
-                    ""
+                    "", listOf()
                 )
             )
         )

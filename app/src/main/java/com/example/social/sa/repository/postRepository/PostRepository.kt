@@ -10,4 +10,6 @@ interface PostRepository {
         images: List<String>,
     ):FireStoreResult<Unit>
     fun getPostsFlow(): Flow<List<Posts>>
+
+    suspend fun getPostsByUserUUID(userUUID:String):List<Posts>
 }

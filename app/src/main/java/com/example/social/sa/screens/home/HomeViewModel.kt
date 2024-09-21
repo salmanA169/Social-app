@@ -1,5 +1,6 @@
 package com.example.social.sa.screens.home
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.social.sa.coroutine.DispatcherProvider
@@ -27,7 +28,7 @@ class HomeViewModel @Inject constructor(
         getPosts()
     }
 
-    fun getPosts() {
+    private fun getPosts() {
         viewModelScope.launch(dispatcherProvider.io) {
             _state.update {
                 it.copy(

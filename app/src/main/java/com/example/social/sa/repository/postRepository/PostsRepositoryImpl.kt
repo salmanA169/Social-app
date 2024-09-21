@@ -20,4 +20,8 @@ class PostsRepositoryImpl @Inject constructor(
     override fun getPostsFlow(): Flow<List<Posts>> {
         return socialFireStoreDatabase.getPostsFlow()
     }
+
+    override suspend fun getPostsByUserUUID(userUUID: String): List<Posts> {
+        return socialFireStoreDatabase.getPostsByUserUUID(userUUID)
+    }
 }

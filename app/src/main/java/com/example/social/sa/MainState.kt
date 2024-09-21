@@ -4,6 +4,13 @@ import androidx.compose.runtime.Immutable
 
 @Immutable
 data class MainState(
-    val shouldNavigateLoginScreen: Boolean = false,
-    val imageProfile:String = ""
+    val isLoggedIn: Boolean = false,
+    val imageProfile:String = "",
+    val startDestination: StartDestinationStatus = StartDestinationStatus.LOADING,
+    val startDestinationRoute:String?= null
 )
+
+enum class StartDestinationStatus{
+    LOADING,SUCCESS
+}
+

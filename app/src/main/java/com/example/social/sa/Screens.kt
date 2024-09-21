@@ -24,6 +24,8 @@ sealed class Screens(val route: String) {
     @Serializable
     data class InfoRegisterRoute(val email:String,val userName:String?,val imageUrl:String?,val isGoogleProvider :Boolean )
 
+    @Serializable
+    data class MessageRoute(val chatId:String)
 
     //    data object MediaPreviewScreen:Screens("media-preview-route"){
 //        override val args: List<NamedNavArgument>
@@ -32,8 +34,11 @@ sealed class Screens(val route: String) {
 //            })
 //
 //    }
-    @Serializable
-    data object RegisterScreen
+
+    data object RegisterScreen:Screens("register-route") {
+        override val args: List<NamedNavArgument>
+            get() = emptyList()
+    }
 
     @Serializable
     object PostReviewScreen
