@@ -2,6 +2,7 @@ package com.example.social.sa.repository.userRepository
 
 import com.example.social.sa.core.requests.FireStoreRequests
 import com.example.social.sa.core.requests.FollowRequest
+import com.example.social.sa.core.requests.FollowResult
 import com.example.social.sa.model.UserInfo
 import javax.inject.Inject
 
@@ -16,6 +17,14 @@ class UserRepositoryImpl @Inject constructor(
         }else{
             throw Exception(userInfoResult.error)
         }
+    }
+
+    override suspend fun getFollowUser(userUid: String): FollowResult {
+        return followRequest.getFollowUser(userUid).data
+    }
+
+    override suspend fun unFollowRequest(userUid: String) {
+        followRequest.unFollowRequest(userUid)
     }
 
     override suspend fun requestFollow(userUid: String) {

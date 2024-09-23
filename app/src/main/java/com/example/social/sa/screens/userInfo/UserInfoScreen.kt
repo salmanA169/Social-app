@@ -60,11 +60,12 @@ fun NavGraphBuilder.userInfoDest(navController: NavController) {
         LaunchedEffect(key1 = true) {
             infoViewModel.getUserInfo(getUserUUid.userUid)
         }
-        LaunchedEffect(key1 = effect ) {
-            when(effect){
+        LaunchedEffect(key1 = effect) {
+            when (effect) {
                 is UserInfoEffect.NavigateToMessageScreen -> {
                     navController.navigate(Screens.MessageRoute((effect as UserInfoEffect.NavigateToMessageScreen).chatId))
                 }
+
                 null -> Unit
             }
             infoViewModel.resetEffect()
@@ -79,12 +80,16 @@ fun NavGraphBuilder.userInfoDest(navController: NavController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun UserInfoScreen(modifier: Modifier = Modifier, userInfoState: UserInfoState,onEvent: (UserInfoEvent)->Unit={}) {
+fun UserInfoScreen(
+    modifier: Modifier = Modifier,
+    userInfoState: UserInfoState,
+    onEvent: (UserInfoEvent) -> Unit = {}
+) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(title = {
                 Text(
-                    text = userInfoState.userInfo?.displayName?:"",
+                    text = userInfoState.userInfo?.displayName ?: "",
                     fontWeight = FontWeight.Bold,
                     fontSize = 19.sp
                 )
@@ -101,27 +106,34 @@ fun UserInfoScreen(modifier: Modifier = Modifier, userInfoState: UserInfoState,o
         LazyColumn(modifier = modifier.padding(it)) {
 
             item {
-                if (userInfoState.userInfo == null){
-                    LinearProgressIndicator(modifier= Modifier.fillMaxWidth())
+                if (userInfoState.userInfo == null) {
+                    LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
                 }
                 UserImageAndFollowing(
-                    imageUri = userInfoState.userInfo?.imageUri?:"",
-                    following = userInfoState.userInfo?.following?.toString()?:"0",
-                    followers = userInfoState.userInfo?.followers?.toString()?:"0",
-                    postCount = userInfoState.userInfo?.postsCount?.toString()?:"0"
+                    imageUri = userInfoState.userInfo?.imageUri ?: "",
+                    following = userInfoState.userInfo?.following?.toString() ?: "0",
+                    followers = userInfoState.userInfo?.followers?.toString() ?: "0",
+                    postCount = userInfoState.userInfo?.postsCount?.toString() ?: "0"
                 )
             }
             item {
                 Text(
-                    text = userInfoState.userInfo?.bio?:"", modifier = Modifier
+                    text = userInfoState.userInfo?.bio ?: "", modifier = Modifier
                         .fillMaxWidth()
                         .padding(vertical = 8.dp)
                 )
             }
             item {
-                ButtonActions(isFollowing = true, onMessageClick = {onEvent(UserInfoEvent.MessageClick)}, onFollowClick = {
-                    onEvent(UserInfoEvent.RequestFollow)
-                })
+                ButtonActions(
+                    isFollowing = userInfoState.isFollowing,
+                    onMessageClick = { onEvent(UserInfoEvent.MessageClick) },
+                    onFollowClick = {
+                        onEvent(UserInfoEvent.RequestFollow)
+                    },
+                    onUnFollowClick = {
+                        onEvent(UserInfoEvent.UnFollowEvent)
+                    }
+                    )
                 Spacer(modifier = Modifier.height(16.dp))
                 HorizontalDivider()
             }
@@ -133,7 +145,13 @@ fun UserInfoScreen(modifier: Modifier = Modifier, userInfoState: UserInfoState,o
 }
 
 @Composable
-fun ButtonActions(modifier: Modifier = Modifier, isFollowing: Boolean,onMessageClick:()->Unit,onFollowClick:()->Unit) {
+fun ButtonActions(
+    modifier: Modifier = Modifier,
+    isFollowing: Boolean,
+    onMessageClick: () -> Unit,
+    onFollowClick: () -> Unit,
+    onUnFollowClick:()-> Unit
+) {
     Row(
         modifier = modifier
             .fillMaxWidth()
@@ -141,8 +159,8 @@ fun ButtonActions(modifier: Modifier = Modifier, isFollowing: Boolean,onMessageC
     ) {
         PrimaryButton(
             modifier = Modifier.weight(1f),
-            text = if (isFollowing) "Follow" else "Following",
-            onClick = onFollowClick
+            text = if (isFollowing) "Following" else "Follow",
+            onClick = if (isFollowing) onUnFollowClick else onFollowClick
         )
         SurfaceButton(text = "Message", modifier = Modifier.weight(1.5f), onClick = onMessageClick)
     }
