@@ -8,5 +8,6 @@ import com.example.social.sa.model.UserInfo
 data class UserInfoState(
     val userInfo: UserInfo?= null,
     val postsUser:List<Posts> = emptyList(),
-    val isFollowing:Boolean = false
+    val isFollowing:Boolean = false,
+    val isLoading:Boolean = false
 )

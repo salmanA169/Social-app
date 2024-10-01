@@ -21,6 +21,12 @@ import javax.inject.Inject
 class SocialFireStoreDatabase @Inject constructor(
     private val fireStore: FirebaseFirestore
 ) {
+
+    fun observeChats(myUUID: String): Flow<List<ChatRoomDto>> {
+        return fireStore.collection(Collections.CHAT_ROOM_COLLECTIONS)
+            .whereArrayContains("participants", myUUID).dataObjects<ChatRoomDto>()
+    }
+
     suspend fun sendPost(postsDto: PostsDto) {
         fireStore.collection(Collections.POSTS_COLLECTIONS).add(postsDto).await()
     }
@@ -59,13 +65,15 @@ class SocialFireStoreDatabase @Inject constructor(
         return fireStore.collection(Collections.CHAT_ROOM_COLLECTIONS).add(chatRoomDto).await()
     }
 
-    suspend fun getChatIfExist(myUUID: String, otherUUID: String):String?{
-       val getChats = fireStore.collection(Collections.CHAT_ROOM_COLLECTIONS).get().await().toObjects<ChatRoomDto>()
+    suspend fun getChatIfExist(myUUID: String, otherUUID: String): String? {
+        val getChats = fireStore.collection(Collections.CHAT_ROOM_COLLECTIONS).get().await()
+            .toObjects<ChatRoomDto>()
         val filterChats = getChats.filter {
-            it.participants.contains(myUUID) &&  it.participants.contains(otherUUID)
+            it.participants.contains(myUUID) && it.participants.contains(otherUUID)
         }.firstOrNull()
         return filterChats?.chatRoomId
     }
+
     suspend fun getCurrentChatById(chatId: String): DocumentReference {
         return fireStore.collection(Collections.CHAT_ROOM_COLLECTIONS)
             .whereEqualTo("chatRoomId", chatId).get().await().documents[0].reference

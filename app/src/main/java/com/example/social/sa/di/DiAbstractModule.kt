@@ -2,6 +2,8 @@ package com.example.social.sa.di
 
 import com.example.social.sa.coroutine.DispatcherProvider
 import com.example.social.sa.coroutine.DispatcherProviderImpl
+import com.example.social.sa.repository.inboxRepo.InboxRepository
+import com.example.social.sa.repository.inboxRepo.InboxRepositoryImpl
 import com.example.social.sa.repository.messageRepo.MessageRepository
 import com.example.social.sa.repository.messageRepo.MessageRepositoryImpl
 import com.example.social.sa.repository.registerRepository.RegisterRepository
@@ -42,4 +44,10 @@ abstract class DiAbstractModule {
     abstract fun bindMessageRepo(
         messageRepositoryImpl: MessageRepositoryImpl
     ):MessageRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindInboxRepo(
+        inboxRepository: InboxRepositoryImpl
+    ):InboxRepository
 }

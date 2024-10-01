@@ -64,12 +64,22 @@ class UserInfoViewModel @Inject constructor(
             UserInfoEvent.RequestFollow->{
                 viewModelScope.launch(dispatcherProvider.io) {
                     userRepository.requestFollow(_state.value.userInfo!!.userUUID)
+                    _state.update {
+                        it.copy(
+                            isFollowing = true
+                        )
+                    }
                 }
             }
 
             UserInfoEvent.UnFollowEvent ->{
                 viewModelScope.launch(dispatcherProvider.io) {
                     userRepository.unFollowRequest(_state.value.userInfo!!.userUUID)
+                    _state.update {
+                        it.copy(
+                            isFollowing = false
+                        )
+                    }
                 }
             }
         }
@@ -89,8 +99,12 @@ class UserInfoViewModel @Inject constructor(
         }
     }
     fun getUserInfo(userUUID: String) {
+        _state.update {
+            it.copy(
+                isLoading = true
+            )
+        }
         getPosts(userUUID)
-
         viewModelScope.launch(dispatcherProvider.io) {
             userRepository.getUserInfoByUUID(userUUID).also { userInfo ->
                 _state.update {
@@ -100,6 +114,11 @@ class UserInfoViewModel @Inject constructor(
                 }
             }
             getFollowUser(userUUID)
+            _state.update {
+                it.copy(
+                    isLoading = false
+                )
+            }
         }
     }
 }

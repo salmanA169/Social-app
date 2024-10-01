@@ -45,6 +45,7 @@ import com.example.social.sa.component.HomeAppBar
 import com.example.social.sa.screens.camera.cameraDest
 import com.example.social.sa.screens.home.add_edit_post.addEditPostDest
 import com.example.social.sa.screens.home.homeDest
+import com.example.social.sa.screens.inbox.inboxDest
 import com.example.social.sa.screens.message.messageDest
 import com.example.social.sa.screens.preview.mediaPreviewDest
 import com.example.social.sa.screens.register.info_register.infoRegisterDest
@@ -194,16 +195,7 @@ fun MainScreen(controller: NavHostController, state: MainState,onEvent: (MainEve
                             Text(text = "notificatoin", Modifier.align(Alignment.Center))
                         }
                     }
-                    composable(Screens.InboxScreen.route) {
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            Text(text = "Inbox",
-                                Modifier
-                                    .align(Alignment.Center)
-                                    .clickable {
-                                        onEvent(MainEvent.LogOut)
-                                    })
-                        }
-                    }
+                    inboxDest(controller,it)
                     registerDest(controller)
                     cameraDest(controller)
                     mediaPreviewDest(navController = controller)

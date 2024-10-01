@@ -27,6 +27,9 @@ sealed class Screens(val route: String) {
     @Serializable
     data class MessageRoute(val chatId:String)
 
+    @Serializable
+    data object InboxRoute
+
     //    data object MediaPreviewScreen:Screens("media-preview-route"){
 //        override val args: List<NamedNavArgument>
 //            get() = listOf( navArgument(ConstantsArg.MEDIA_PREVIEW_SCREEN_MEDIA_TYPE_ARG){

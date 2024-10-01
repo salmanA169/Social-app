@@ -16,6 +16,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.DocumentReference
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
@@ -25,6 +26,16 @@ class FireStoreRequests @Inject constructor(
     private val socialFirebaseStorageRequest: SocialFirebaseStorageRequest,
     private val dispatcherProvider: DispatcherProvider
 ) {
+
+    fun observeChats():FireStoreResult<Flow<List<ChatRoomDto>>>{
+        return try {
+            val getChats = socialFireStore.observeChats(auth.uid!!)
+            FireStoreResult(true,null,getChats)
+        }catch (e:Exception){
+            FireStoreResult(false,e.message,null)
+        }
+    }
+
     suspend fun sendPost(
         postId: String,
         content: String,

@@ -2,6 +2,7 @@ package com.example.social.sa.component
 
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -9,8 +10,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 
 @Composable
-fun PrimaryButton(modifier: Modifier = Modifier, text: String, onClick: () -> Unit) {
-    Button(onClick = onClick, modifier = modifier, shape = RoundedCornerShape(20)) {
+fun PrimaryButton(modifier: Modifier = Modifier, text: String, onClick: () -> Unit, colors: ButtonColors = ButtonDefaults.buttonColors()) {
+    Button(onClick = onClick, modifier = modifier, shape = RoundedCornerShape(20),colors = colors) {
         Text(text = text)
     }
 }
