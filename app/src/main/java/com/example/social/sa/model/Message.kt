@@ -24,6 +24,7 @@ enum class MessageType{
     VIDEO
 }
 data class ChatInfoState(
+    val chatId:String,
     val displayName:String,
     val imageUri:String,
     val lastMessage:String,

@@ -1,6 +1,5 @@
 package com.example.social.sa.screens.inbox
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.social.sa.coroutine.DispatcherProvider
@@ -21,11 +20,13 @@ class InboxViewModel @Inject constructor(
     private val _inboxState = MutableStateFlow(InboxState())
     val inboxState = _inboxState.asStateFlow()
     private var job: Job? = null
+    private val _effect = MutableStateFlow<InboxEffect?>(null)
+    val effect = _effect.asStateFlow()
+
     init {
         job?.cancel()
         job = viewModelScope.launch(dispatcherProvider.io) {
             inboxRepository.observeChats().collect{chats->
-                Log.d("InboxViewModel", "called chat observe: $chats")
                 _inboxState.update {
                     it.copy(
                         chats
@@ -34,8 +35,25 @@ class InboxViewModel @Inject constructor(
             }
         }
     }
+    fun onEvent(event: InboxEvent){
+        when(event){
+            is InboxEvent.NavigateToChat->{
+                _effect.value = InboxEffect.NavigateToChat(event.chatId)
+            }
+        }
+    }
+    fun resetEffect(){
+        _effect.value = null
+    }
     fun stopObserve(){
         // TODO: for test now when back screen not observe again
        job?.cancel()
     }
+}
+
+sealed class InboxEffect{
+    data class NavigateToChat(val chatId:String):InboxEffect()
+}
+sealed class InboxEvent{
+    data class NavigateToChat(val chatId:String):InboxEvent()
 }

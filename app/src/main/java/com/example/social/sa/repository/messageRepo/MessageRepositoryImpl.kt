@@ -77,6 +77,7 @@ class MessageRepositoryImpl @Inject constructor(
             messageType = if (mediaUri != null) MessageType.IMAGE else MessageType.TEXT,
         )
         currentChatDocument.collection(Collections.MESSAGES).add(message).await()
+        currentChatDocument.update("lastMessage", text, "lastMessageSender", firebaseAuth.currentUser!!.uid).await()
     }
 
     // TODO: improve it to observe live data
@@ -88,7 +89,8 @@ class MessageRepositoryImpl @Inject constructor(
             displayName = getUserInfo.displayName,
             isLastMessageFromMe = getChatInfo.lastMessageSender!! == firebaseAuth.currentUser!!.uid,
             imageUri = getUserInfo.imageUri,
-            lastMessage = getChatInfo.lastMessage!!
+            lastMessage = getChatInfo.lastMessage!!,
+            chatId = getChatInfo.chatRoomId!!
         )
     }
 }
