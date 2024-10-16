@@ -3,17 +3,16 @@ package com.example.social.sa.core.database
 import android.util.Log
 import com.example.social.sa.model.Posts
 import com.example.social.sa.model_dto.ChatRoomDto
-import com.example.social.sa.model_dto.MessageDto
 import com.example.social.sa.model_dto.PostsDto
 import com.example.social.sa.model_dto.UsersDto
 import com.example.social.sa.model_dto.toPosts
-import com.google.android.gms.tasks.Tasks.await
 import com.google.firebase.firestore.DocumentReference
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.dataObjects
 import com.google.firebase.firestore.snapshots
 import com.google.firebase.firestore.toObjects
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
@@ -23,8 +22,19 @@ class SocialFireStoreDatabase @Inject constructor(
 ) {
 
     fun observeChats(myUUID: String): Flow<List<ChatRoomDto>> {
+        val chatRoomFlow = fireStore.collection(Collections.CHAT_ROOM_COLLECTIONS).snapshots()
+        return chatRoomFlow.map {
+            it.documents.map {
+                it.toObject(ChatRoomDto::class.java)!!
+            }.filter {
+                it.participants.find { it.userUid == myUUID } != null
+            }
+        }
+    }
+
+    suspend fun getChatDocumentReference(chatID: String): DocumentReference {
         return fireStore.collection(Collections.CHAT_ROOM_COLLECTIONS)
-            .whereArrayContains("participants", myUUID).dataObjects<ChatRoomDto>()
+            .whereEqualTo("chatRoomId", chatID).get().await().documents.first().reference
     }
 
     suspend fun sendPost(postsDto: PostsDto) {
@@ -69,8 +79,10 @@ class SocialFireStoreDatabase @Inject constructor(
         val getChats = fireStore.collection(Collections.CHAT_ROOM_COLLECTIONS).get().await()
             .toObjects<ChatRoomDto>()
         val filterChats = getChats.filter {
-            it.participants.contains(myUUID) && it.participants.contains(otherUUID)
+            it.participants.find { it.userUid == myUUID } != null && it.participants.find { it.userUid == otherUUID } != null
         }.firstOrNull()
+        Log.d("SocialFireStoreCheckChat", "getChatIfExist: chats $getChats")
+        Log.d("SocialFireStoreCheckChat", "is Exist $filterChats")
         return filterChats?.chatRoomId
     }
 

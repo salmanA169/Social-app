@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -51,9 +52,9 @@ fun NavGraphBuilder.inboxDest(navController: NavController, paddingValues: Paddi
         val inboxViewModel = hiltViewModel<InboxViewModel>()
         val inboxState by inboxViewModel.inboxState.collectAsStateWithLifecycle()
         val effect by inboxViewModel.effect.collectAsStateWithLifecycle()
-        LifecycleEventEffect(event = Lifecycle.Event.ON_PAUSE) {
-            inboxViewModel.stopObserve()
-        }
+//        LifecycleEventEffect(event = Lifecycle.Event.ON_PAUSE) {
+//            inboxViewModel.stopObserve()
+//        }
         LaunchedEffect(key1 = effect) {
             when(effect){
                 is InboxEffect.NavigateToChat -> {
@@ -71,11 +72,9 @@ fun NavGraphBuilder.inboxDest(navController: NavController, paddingValues: Paddi
 fun InboxScreen(inboxState: InboxState, paddingValues: PaddingValues,onEvent: (InboxEvent) -> Unit={}) {
     LazyColumn(
         modifier = Modifier
-            // TODO: fix ripple clickable {  } 
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surfaceContainer)
             .padding(paddingValues),
-        contentPadding = PaddingValues(6.dp)
     ) {
         // TODO: add key and improve performance and ui
         items(inboxState.chats, key = {
@@ -86,11 +85,12 @@ fun InboxScreen(inboxState: InboxState, paddingValues: PaddingValues,onEvent: (I
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .clip(RoundedCornerShape(50f))
                     .clickable {
                         onEvent(InboxEvent.NavigateToChat(it.chatId))
-                    },
+                    }.padding(6.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 AsyncImage(
                     model = it.imageUri,
@@ -116,12 +116,14 @@ fun InboxScreen(inboxState: InboxState, paddingValues: PaddingValues,onEvent: (I
 
                 }
                 Spacer(modifier = Modifier.weight(1f))
-                Box(
-                    modifier = Modifier
-                        .size(25.dp)
-                        .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
-                ) {
-                    Text(text = "1", modifier = Modifier.align(Alignment.Center))
+                if (it.unReadMessages > 0){
+                    Box(
+                        modifier = Modifier
+                            .size(25.dp)
+                            .background(MaterialTheme.colorScheme.primaryContainer, CircleShape)
+                    ) {
+                        Text(text = it.unReadMessages.toString(), modifier = Modifier.align(Alignment.Center))
+                    }
                 }
             }
 
@@ -137,9 +139,9 @@ private fun InboxPreview() {
         InboxScreen(
             inboxState = InboxState(
                 listOf(
-                    ChatInfoState("", "salmadsn", "", "dddddddddd", false),
-                    ChatInfoState("salmands", "ddddddd", "", "dddd", false),
-                    ChatInfoState("salman", "ssssssssss", "", "ddd", false),
+                    ChatInfoState("", "salmadsn", "", "dddddddddd", false,5),
+                    ChatInfoState("salmands", "ddddddd", "", "dddd", false,5),
+                    ChatInfoState("salman", "ssssssssss", "", "ddd", false,6),
                 )
             ), paddingValues = PaddingValues()
         )

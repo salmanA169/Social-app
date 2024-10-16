@@ -27,13 +27,17 @@ class FireStoreRequests @Inject constructor(
     private val dispatcherProvider: DispatcherProvider
 ) {
 
-    fun observeChats():FireStoreResult<Flow<List<ChatRoomDto>>>{
+    fun observeChats(): FireStoreResult<Flow<List<ChatRoomDto>>> {
         return try {
             val getChats = socialFireStore.observeChats(auth.uid!!)
-            FireStoreResult(true,null,getChats)
-        }catch (e:Exception){
-            FireStoreResult(false,e.message,null)
+            FireStoreResult(true, null, getChats)
+        } catch (e: Exception) {
+            FireStoreResult(false, e.message, null)
         }
+    }
+
+    suspend fun getChatIdReference(chatId: String): DocumentReference {
+        return socialFireStore.getChatDocumentReference(chatId)
     }
 
     suspend fun sendPost(
@@ -117,25 +121,27 @@ class FireStoreRequests @Inject constructor(
 
     suspend fun getChatIfExist(myUUID: String, otherUUID: String): FireStoreResult<String?> {
         return try {
-            val documentReference = socialFireStore.getChatIfExist(myUUID,otherUUID)
+            val documentReference = socialFireStore.getChatIfExist(myUUID, otherUUID)
             FireStoreResult(true, null, documentReference)
         } catch (e: Exception) {
-            Log.e("FireStoreRequest", "getChatIfExist: called error",e)
+            Log.e("FireStoreRequest", "getChatIfExist: called error", e)
             FireStoreResult(false, e.message, null)
         }
     }
+
     suspend fun getCurrentChatReference(chatRoomId: String): FireStoreResult<DocumentReference> {
         return try {
             val documentReference = socialFireStore.getCurrentChatById(chatRoomId)
-            FireStoreResult(true,null,documentReference)
-        }catch (e:Exception){
-            FireStoreResult(false,e.message,null)
+            FireStoreResult(true, null, documentReference)
+        } catch (e: Exception) {
+            FireStoreResult(false, e.message, null)
         }
     }
 //    fun observeMessage(chatRoomId: String) = socialFireStore.observeMessage(chatRoomId)
 }
-    data class FireStoreResult<T>(
-        val isSuccess: Boolean,
-        val error: String?,
-        val data: T?
-    )
+
+data class FireStoreResult<T>(
+    val isSuccess: Boolean,
+    val error: String?,
+    val data: T?
+)

@@ -28,5 +28,6 @@ data class ChatInfoState(
     val displayName:String,
     val imageUri:String,
     val lastMessage:String,
-    val isLastMessageFromMe:Boolean
+    val isLastMessageFromMe:Boolean,
+    val unReadMessages:Int,
 )

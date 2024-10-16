@@ -42,6 +42,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.social.sa.component.HomeAppBar
+import com.example.social.sa.core.database.Collections
 import com.example.social.sa.screens.camera.cameraDest
 import com.example.social.sa.screens.home.add_edit_post.addEditPostDest
 import com.example.social.sa.screens.home.homeDest
@@ -52,6 +53,10 @@ import com.example.social.sa.screens.register.info_register.infoRegisterDest
 import com.example.social.sa.screens.register.registerDest
 import com.example.social.sa.screens.userInfo.userInfoDest
 import com.example.social.sa.ui.theme.SocialTheme
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.ktx.firestore
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.messaging.ktx.messaging
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -65,6 +70,7 @@ class MainActivity : ComponentActivity() {
             registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
 
             }
+
         requestPermission.launch(
             arrayOf(
                 Manifest.permission.READ_MEDIA_IMAGES,

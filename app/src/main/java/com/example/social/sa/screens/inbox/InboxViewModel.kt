@@ -1,5 +1,6 @@
 package com.example.social.sa.screens.inbox
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.social.sa.coroutine.DispatcherProvider
@@ -11,6 +12,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import kotlin.math.log
 
 @HiltViewModel
 class InboxViewModel @Inject constructor(
@@ -47,6 +49,7 @@ class InboxViewModel @Inject constructor(
     }
     fun stopObserve(){
         // TODO: for test now when back screen not observe again
+        Log.d("InboxViewModel", "stopObserve: called stop")
        job?.cancel()
     }
 }

@@ -1,9 +1,10 @@
 package com.example.social.sa.model_dto
 
+import androidx.annotation.Keep
 import com.example.social.sa.model.Posts
 import com.example.social.sa.utils.toLocalDateTime
 import com.google.firebase.Timestamp
-
+@Keep
 data class PostsDto(
     val postId: String = "",
     val senderUID: String = "",
