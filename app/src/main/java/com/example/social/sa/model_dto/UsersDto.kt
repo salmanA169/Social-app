@@ -16,6 +16,8 @@ data class UsersDto(
     val bio:String = "",
     val chatsRoom:List<String> = emptyList()
 )
+
+
 fun UsersDto.toUserInfo()= UserInfo(
     userUUID = userUUID,
         userId, displayName, imageUri, createdAt, email, followers, following, postsCount, bio,chatsRoom

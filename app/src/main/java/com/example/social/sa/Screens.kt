@@ -7,7 +7,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NamedNavArgument
-import com.example.social.sa.core.MediaType
 import kotlinx.serialization.Serializable
 
 sealed class Screens(val route: String) {
@@ -28,7 +27,7 @@ sealed class Screens(val route: String) {
     data class MessageRoute(val chatId:String)
 
     @Serializable
-    data object InboxRoute
+    data object SearchRoute
 
     //    data object MediaPreviewScreen:Screens("media-preview-route"){
 //        override val args: List<NamedNavArgument>
@@ -55,8 +54,8 @@ sealed class Screens(val route: String) {
             get() = emptyList()
     }
 
-    object SearchScreen :
-        BottomScreens("Search-route", drawableBottomIcon(R.drawable.search_icon)) {
+    object DiscoverScreen :
+        BottomScreens("Discover-route", drawableBottomIcon(R.drawable.search_icon)) {
         override val args: List<NamedNavArgument>
             get() = emptyList()
     }
@@ -80,7 +79,7 @@ sealed class Screens(val route: String) {
 
 val bottomScreens = listOf<Screens.BottomScreens>(
     Screens.HomeScreen,
-    Screens.SearchScreen,
+    Screens.DiscoverScreen,
     Screens.NotificationScreen,
     Screens.InboxScreen
 )

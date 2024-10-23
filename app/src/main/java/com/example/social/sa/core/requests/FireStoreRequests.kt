@@ -27,6 +27,9 @@ class FireStoreRequests @Inject constructor(
     private val dispatcherProvider: DispatcherProvider
 ) {
 
+   suspend fun getAllUsers():List<UsersDto>{
+        return socialFireStore.getAllUsers()
+    }
     fun observeChats(): FireStoreResult<Flow<List<ChatRoomDto>>> {
         return try {
             val getChats = socialFireStore.observeChats(auth.uid!!)

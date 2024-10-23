@@ -21,6 +21,9 @@ class SocialFireStoreDatabase @Inject constructor(
     private val fireStore: FirebaseFirestore
 ) {
 
+    suspend fun getAllUsers():List<UsersDto>{
+        return fireStore.collection(Collections.USERS_COLLECTIONS).get().await().toObjects()
+    }
     fun observeChats(myUUID: String): Flow<List<ChatRoomDto>> {
         val chatRoomFlow = fireStore.collection(Collections.CHAT_ROOM_COLLECTIONS).snapshots()
         return chatRoomFlow.map {

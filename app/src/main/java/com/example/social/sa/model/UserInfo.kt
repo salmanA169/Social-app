@@ -18,7 +18,16 @@ data class UserInfo(
     // TODO: maybe remove it no need
     val chatsRoom: List<String>
 )
-
+fun UserInfo.doesMatchSearchQuery(query:String):Boolean {
+    val listCombinations = listOf(
+        "$userId$displayName",
+        "$userId $displayName",
+        "${userId.first()} ${displayName.first()}",
+    )
+    return listCombinations.any{
+        it.contains(query, ignoreCase = true)
+    }
+}
 fun UserInfo.toUserDto() = UsersDto(
     userUUID = userUUID,
     userId = userId,

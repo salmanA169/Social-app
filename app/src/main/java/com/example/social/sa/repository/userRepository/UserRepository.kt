@@ -8,4 +8,5 @@ interface UserRepository {
     suspend fun requestFollow(userUid:String)
     suspend fun getFollowUser(userUid:String):FollowResult
     suspend fun unFollowRequest(userUid:String)
+    suspend fun getAllUsers():List<UserInfo>
 }

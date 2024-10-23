@@ -7,8 +7,10 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
@@ -25,9 +27,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen
@@ -42,8 +42,9 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.social.sa.component.HomeAppBar
-import com.example.social.sa.core.database.Collections
 import com.example.social.sa.screens.camera.cameraDest
+import com.example.social.sa.screens.discover.DiscoverViewModel
+import com.example.social.sa.screens.discover.discoverDest
 import com.example.social.sa.screens.home.add_edit_post.addEditPostDest
 import com.example.social.sa.screens.home.homeDest
 import com.example.social.sa.screens.inbox.inboxDest
@@ -51,12 +52,9 @@ import com.example.social.sa.screens.message.messageDest
 import com.example.social.sa.screens.preview.mediaPreviewDest
 import com.example.social.sa.screens.register.info_register.infoRegisterDest
 import com.example.social.sa.screens.register.registerDest
+import com.example.social.sa.screens.search.searchDest
 import com.example.social.sa.screens.userInfo.userInfoDest
 import com.example.social.sa.ui.theme.SocialTheme
-import com.google.firebase.auth.ktx.auth
-import com.google.firebase.firestore.ktx.firestore
-import com.google.firebase.ktx.Firebase
-import com.google.firebase.messaging.ktx.messaging
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -70,7 +68,6 @@ class MainActivity : ComponentActivity() {
             registerForActivityResult(ActivityResultContracts.RequestMultiplePermissions()) {
 
             }
-
         requestPermission.launch(
             arrayOf(
                 Manifest.permission.READ_MEDIA_IMAGES,
@@ -82,7 +79,7 @@ class MainActivity : ComponentActivity() {
             )
         )
         splashScreens = installSplashScreen()
-        splashScreens.setKeepOnScreenCondition{
+        splashScreens.setKeepOnScreenCondition {
             keepSplash
         }
         Log.d("MainActivity", "onCreate: $bottomScreens")
@@ -99,10 +96,11 @@ class MainActivity : ComponentActivity() {
                     }
                 }
                 LaunchedEffect(key1 = effect) {
-                    when(effect){
+                    when (effect) {
                         MainEffect.NavigateToRegisterRoute -> {
                             controller.navigate(Screens.RegisterScreen.route)
                         }
+
                         null -> Unit
                     }
                     mainViewModel.resetEffect()
@@ -111,106 +109,122 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainScreen(controller, state,mainViewModel::onEvent)
+                    MainScreen(controller, state, mainViewModel::onEvent)
                 }
             }
         }
     }
-}
 
-@Composable
-fun MainScreen(controller: NavHostController, state: MainState,onEvent: (MainEvent) -> Unit={}) {
-    val navBackStackEntry by controller.currentBackStackEntryAsState()
-    val currentDestination = navBackStackEntry?.destination
+    @Composable
+    fun MainScreen(
+        controller: NavHostController,
+        state: MainState,
+        onEvent: (MainEvent) -> Unit = {}
+    ) {
+        val navBackStackEntry by controller.currentBackStackEntryAsState()
+        val currentDestination = navBackStackEntry?.destination
 
-
-    val screens = remember {
-        bottomScreens
-    }
-
-    // TODO: fix it later
-
-    when(state.startDestination){
-        StartDestinationStatus.LOADING->{
-            CircularProgressIndicator()
+        val screens = remember {
+            bottomScreens
         }
 
-        StartDestinationStatus.SUCCESS -> {
-            val shouldShow = remember( currentDestination?.route ?: false) {
-                screens.any { it.route == currentDestination?.route }
-            }
-            Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
+        // TODO: fix it later
 
-                // TODO: improve it later
-                AnimatedVisibility(visible = shouldShow) {
-                    NavigationBar {
-                        screens.forEach { screen ->
-                            NavigationBarItem(
-                                selected = currentDestination?.hierarchy?.any {
-                                    it.route == screen.route
-                                } == true,
-                                onClick = {
-                                    controller.navigate(screen.route) {
-                                        // Pop up to the start destination of the graph to
-                                        // avoid building up a large stack of destinations
-                                        // on the back stack as users select items
-                                        popUpTo(controller.graph.findStartDestination().id) {
-                                            saveState = true
+        when (state.startDestination) {
+            StartDestinationStatus.LOADING -> {
+                CircularProgressIndicator()
+            }
+
+            StartDestinationStatus.SUCCESS -> {
+                val shouldShow = remember(currentDestination?.route ?: false) {
+                    screens.any { it.route == currentDestination?.route }
+                }
+                val isSearchScreen = remember(currentDestination?.route ?: false) {
+                    currentDestination?.route == Screens.DiscoverScreen.route
+                }
+                Scaffold(modifier = Modifier.fillMaxSize(), bottomBar = {
+
+                    // TODO: improve it later
+                    AnimatedVisibility(visible = shouldShow) {
+                        NavigationBar {
+                            screens.forEach { screen ->
+                                NavigationBarItem(
+                                    selected = currentDestination?.hierarchy?.any {
+                                        it.route == screen.route
+                                    } == true,
+                                    onClick = {
+                                        controller.navigate(screen.route) {
+                                            // Pop up to the start destination of the graph to
+                                            // avoid building up a large stack of destinations
+                                            // on the back stack as users select items
+                                            popUpTo(controller.graph.findStartDestination().id) {
+                                                saveState = true
+                                            }
+                                            // Avoid multiple copies of the same destination when
+                                            // reselecting the same item
+                                            launchSingleTop = true
+                                            // Restore state when reselecting a previously selected item
+                                            restoreState = true
                                         }
-                                        // Avoid multiple copies of the same destination when
-                                        // reselecting the same item
-                                        launchSingleTop = true
-                                        // Restore state when reselecting a previously selected item
-                                        restoreState = true
-                                    }
 
-                                },
-                                icon = {
-                                    Icon(painter = screen.icon.getIcon(), contentDescription = "")
-                                })
+                                    },
+                                    icon = {
+                                        Icon(
+                                            painter = screen.icon.getIcon(),
+                                            contentDescription = ""
+                                        )
+                                    })
+                            }
                         }
                     }
-                }
-            }, topBar = {
-                AnimatedVisibility(visible = shouldShow) {
-                    HomeAppBar(image = state.imageProfile)
-                }
-            }, floatingActionButton = {
-                AnimatedVisibility(visible = shouldShow) {
-                    FloatingActionButton(onClick = {
-                        controller.navigate(Screens.PostReviewScreen)
-                    }) {
-                        Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
+                }, topBar = {
+                    AnimatedVisibility(
+                        visible = shouldShow,
+                        enter = fadeIn(),
+                        exit = fadeOut(),
+                    ) {
+                        HomeAppBar(
+                            image = state.imageProfile,
+                            showSearch = isSearchScreen,
+                            onSearchClick = {
+                                controller.navigate(Screens.SearchRoute)
+                            }
+                        )
                     }
-                }
-            }) {
+                }, floatingActionButton = {
+                    AnimatedVisibility(visible = shouldShow) {
+                        FloatingActionButton(onClick = {
+                            controller.navigate(Screens.PostReviewScreen)
+                        }) {
+                            Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
+                        }
+                    }
+                }) {
+                    NavHost(
+                        navController = controller,
+                        startDestination = state.startDestinationRoute!!
+                    ) {
+                        homeDest(controller, it)
+                        addEditPostDest(controller)
+                        discoverDest(controller, paddingValues = it )
+                        composable(Screens.NotificationScreen.route) {
+                            Box(modifier = Modifier.fillMaxSize()) {
+                                Text(text = "notificatoin", Modifier.align(Alignment.Center))
+                            }
+                        }
+                        inboxDest(controller, it)
+                        registerDest(controller)
+                        cameraDest(controller)
+                        mediaPreviewDest(navController = controller)
+                        userInfoDest(navController = controller)
+                        infoRegisterDest(navController = controller)
+                        messageDest(controller)
+                        searchDest(controller)
+                    }
 
-                NavHost(
-                    navController = controller,
-                    startDestination = state.startDestinationRoute!!
-                ) {
-                    homeDest(controller, it)
-                    addEditPostDest(controller)
-                    composable(Screens.SearchScreen.route) {
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            Text(text = "Search", Modifier.align(Alignment.Center))
-                        }
-                    }
-                    composable(Screens.NotificationScreen.route) {
-                        Box(modifier = Modifier.fillMaxSize()) {
-                            Text(text = "notificatoin", Modifier.align(Alignment.Center))
-                        }
-                    }
-                    inboxDest(controller,it)
-                    registerDest(controller)
-                    cameraDest(controller)
-                    mediaPreviewDest(navController = controller)
-                    userInfoDest(navController = controller)
-                    infoRegisterDest(navController = controller)
-                    messageDest(controller)
                 }
+
             }
-
         }
     }
 }

@@ -14,6 +14,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.ripple.createRippleModifierNode
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
@@ -106,8 +107,8 @@ fun NavGraphBuilder.cameraDest(navController: NavController) {
                                     currentBitmap = it
                                 }, context)
                             },
-                            interactionSource = remember { MutableInteractionSource() },
-                            indication = rememberRipple()
+//                            interactionSource = remember { MutableInteractionSource() },
+//                            indication = createRippleModifierNode()
                         )
                         .align(Alignment.BottomCenter)
                 ) {

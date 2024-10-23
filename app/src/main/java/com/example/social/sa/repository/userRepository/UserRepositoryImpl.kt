@@ -4,6 +4,7 @@ import com.example.social.sa.core.requests.FireStoreRequests
 import com.example.social.sa.core.requests.FollowRequest
 import com.example.social.sa.core.requests.FollowResult
 import com.example.social.sa.model.UserInfo
+import com.example.social.sa.model_dto.toUserInfo
 import javax.inject.Inject
 
 class UserRepositoryImpl @Inject constructor(
@@ -32,4 +33,14 @@ class UserRepositoryImpl @Inject constructor(
             // TODO: set later
         }
     }
+
+    override suspend fun getAllUsers(): List<UserInfo> {
+        return firebaseStoreRequests.getAllUsers().map { it.toUserInfo() }
+    }
 }
+
+
+
+
+
+
